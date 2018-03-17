@@ -17,17 +17,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.Scope import Scope, ScopeType
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.CoCosManager import CoCosManager
 from pynestml.modelprocessor.Either import Either
+from pynestml.modelprocessor.FunctionSymbol import FunctionSymbol
+from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
+from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
+from pynestml.modelprocessor.Scope import Scope, ScopeType
+from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType, VariableType
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
 from pynestml.utils.Messages import Messages
-from pynestml.modelprocessor.FunctionSymbol import FunctionSymbol
-from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType, VariableType
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
-from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
-from pynestml.modelprocessor.CoCosManager import CoCosManager
 
 
 class ASTSymbolTableVisitor(NESTMLVisitor):
@@ -42,19 +42,19 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
     __currentBlockType = None
 
     @classmethod
-    def updateSymbolTable(cls, _astNeuron=None):
+    def update_symbol_table(cls, _ast_neuron=None):
         """
         Creates for the handed over ast the corresponding symbol table.
-        :param _astNeuron: a AST neuron object as used to create the symbol table
-        :type _astNeuron: ASTNeuron
+        :param _ast_neuron: a AST neuron object as used to create the symbol table
+        :type _ast_neuron: ASTNeuron
         :return: a new symbol table
         :rtype: SymbolTable
         """
-        Logger.setCurrentNeuron(_astNeuron)
+        Logger.setCurrentNeuron(_ast_neuron)
         code, message = Messages.getStartBuildingSymbolTable()
-        Logger.logMessage(_neuron=_astNeuron, _code=code, _errorPosition=_astNeuron.getSourcePosition(),
+        Logger.logMessage(_neuron=_ast_neuron, _code=code, _errorPosition=_ast_neuron.getSourcePosition(),
                           _message=message, _logLevel=LOGGING_LEVEL.INFO)
-        ASTSymbolTableVisitor.visit_neuron(_astNeuron)
+        ASTSymbolTableVisitor.visit_neuron(_ast_neuron)
         Logger.setCurrentNeuron(None)
         return
 
@@ -71,7 +71,7 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         # before starting the work on the neuron, make everything which was implicit explicit
         # but if we have a model without an equations block, just skip this step
         if _neuron.getEquationsBlocks() is not None:
-            cls.makeImplicitOdesExplicit(_neuron.getEquationsBlocks())
+            cls.make_implicit_odes_explicit(_neuron.getEquationsBlocks())
         scope = Scope(_scopeType=ScopeType.GLOBAL, _sourcePosition=_neuron.getSourcePosition())
         _neuron.updateScope(scope)
         _neuron.getBody().updateScope(scope)
@@ -88,20 +88,19 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         CoCosManager.postSymbolTableBuilderChecks(_neuron)
         # the following part is done in order to mark conductance based buffers as such.
         if _neuron.getInputBlocks() is not None and _neuron.getEquationsBlocks() is not None and \
-                        len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
+                len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
             # this case should be prevented, since several input blocks result in  a incorrect model
             if isinstance(_neuron.getInputBlocks(), list):
                 buffers = (buffer for bufferA in _neuron.getInputBlocks() for buffer in bufferA.getInputLines())
             else:
                 buffers = (buffer for buffer in _neuron.getInputBlocks().getInputLines())
             from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
-            odeDeclarations = (decl for decl in _neuron.getEquationsBlocks().getDeclarations() if
-                               not isinstance(decl, ASTOdeShape))
-            cls.markConductanceBasedBuffers(_inputLines=buffers, _odeDeclarations=odeDeclarations)
+
+            cls.mark_conductance_based_buffers(buffers)
         # now update the equations
         if _neuron.getEquationsBlocks() is not None and len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
-            equationBlock = _neuron.getEquationsBlocks()
-            cls.assignOdeToVariables(equationBlock)
+            equation_block = _neuron.getEquationsBlocks()
+            cls.assign_ode_to_variables(equation_block)
         CoCosManager.postOdeSpecificationChecks(_neuron)
         return
 
@@ -131,11 +130,11 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
             elif isinstance(bodyElement, ASTOutputBlock):
                 cls.visit_output_block(bodyElement)
             elif isinstance(bodyElement, ASTFunction):
-                cls.visitFunctionBlock(bodyElement)
+                cls.visit_function_block(bodyElement)
         return
 
     @classmethod
-    def visitFunctionBlock(cls, _block=None):
+    def visit_function_block(cls, _block=None):
         """
         Private method: Used to visit a single function block and create the corresponding scope.
         :param _block: a function block object.
@@ -156,24 +155,24 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         for arg in _block.getParameters():
             # first visit the data type to ensure that variable symbol can receive a combined data type
             arg.getDataType().updateScope(scope)
-            cls.visitDataType(arg.getDataType())
+            cls.visit_data_type(arg.getDataType())
             # given the fact that the name is not directly equivalent to the one as stated in the model,
             # we have to get it by the sub-visitor
-            typeName = ASTUnitTypeVisitor.visitDatatype(arg.getDataType())
+            type_name = ASTUnitTypeVisitor.visitDatatype(arg.getDataType())
             # first collect the types for the parameters of the function symbol
-            symbol.addParameterType(PredefinedTypes.getTypeIfExists(typeName))
+            symbol.addParameterType(PredefinedTypes.getTypeIfExists(type_name))
             # update the scope of the arg
             arg.updateScope(scope)
             # create the corresponding variable symbol representing the parameter
-            varSymbol = VariableSymbol(_referenced_object=arg, _scope=scope, _name=arg.getName(),
-                                       _blockType=BlockType.LOCAL, _isPredefined=False, _isFunction=False,
-                                       _isRecordable=False,
-                                       _typeSymbol=PredefinedTypes.getTypeIfExists(typeName),
-                                       _variableType=VariableType.VARIABLE)
-            scope.addSymbol(varSymbol)
+            var_symbol = VariableSymbol(_referenced_object=arg, _scope=scope, _name=arg.getName(),
+                                        _blockType=BlockType.LOCAL, _isPredefined=False, _isFunction=False,
+                                        _isRecordable=False,
+                                        _typeSymbol=PredefinedTypes.getTypeIfExists(type_name),
+                                        _variableType=VariableType.VARIABLE)
+            scope.addSymbol(var_symbol)
         if _block.hasReturnType():
             _block.get_return_data_type().updateScope(scope)
-            cls.visitDataType(_block.get_return_data_type())
+            cls.visit_data_type(_block.get_return_data_type())
             symbol.setReturnType(
                 PredefinedTypes.getTypeIfExists(ASTUnitTypeVisitor.visitDatatype(_block.get_return_data_type())))
         else:
@@ -287,19 +286,19 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def visit_function_call(cls, _functionCall=None):
+    def visit_function_call(cls, _function_call=None):
         """
         Private method: Used to visit a single function call and update its corresponding scope.
-        :param _functionCall: a function call object.
-        :type _functionCall: ASTFunctionCall
+        :param _function_call: a function call object.
+        :type _function_call: ASTFunctionCall
         :return: no return value, since neither scope nor symbol is created
         :rtype: void
         """
         from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
-        assert (_functionCall is not None and isinstance(_functionCall, ASTFunctionCall)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of function call provided (%s)!' % type(_functionCall)
-        for arg in _functionCall.getArgs():
-            arg.updateScope(_functionCall.getScope())
+        assert (_function_call is not None and isinstance(_function_call, ASTFunctionCall)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of function call provided (%s)!' % type(_function_call)
+        for arg in _function_call.getArgs():
+            arg.updateScope(_function_call.getScope())
             cls.visit_expression(arg)
         return
 
@@ -320,33 +319,33 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
             '(PyNestML.SymbolTable.Visitor) No or wrong typ of declaration provided (%s)!' % type(_declaration)
 
         expression = _declaration.getExpression() if _declaration.hasExpression() else None
-        typeName = ASTUnitTypeVisitor.visitDatatype(_declaration.getDataType())
+        type_name = ASTUnitTypeVisitor.visitDatatype(_declaration.getDataType())
         # all declarations in the state block are recordable
-        isRecordable = _declaration.isRecordable() or \
-                       cls.__currentBlockType == BlockType.STATE or cls.__currentBlockType == BlockType.INITIAL_VALUES
-        initValue = _declaration.getExpression() if cls.__currentBlockType == BlockType.INITIAL_VALUES else None
-        vectorParameter = _declaration.getSizeParameter()
+        is_recordable = _declaration.isRecordable() or \
+            cls.__currentBlockType == BlockType.STATE or cls.__currentBlockType == BlockType.INITIAL_VALUES
+        init_value = _declaration.getExpression() if cls.__currentBlockType == BlockType.INITIAL_VALUES else None
+        vector_parameter = _declaration.getSizeParameter()
         for var in _declaration.getVariables():  # for all variables declared create a new symbol
             var.updateScope(_declaration.getScope())
-            typeSymbol = PredefinedTypes.getTypeIfExists(typeName)
+            type_symbol = PredefinedTypes.getTypeIfExists(type_name)
             symbol = VariableSymbol(_referenced_object=_declaration,
                                     _scope=_declaration.getScope(),
                                     _name=var.getCompleteName(),
                                     _blockType=cls.__currentBlockType,
                                     _declaringExpression=expression, _isPredefined=False,
                                     _isFunction=_declaration.isFunction(),
-                                    _isRecordable=isRecordable,
-                                    _typeSymbol=typeSymbol,
-                                    _initialValue=initValue,
-                                    _vectorParameter=vectorParameter,
+                                    _isRecordable=is_recordable,
+                                    _typeSymbol=type_symbol,
+                                    _initialValue=init_value,
+                                    _vectorParameter=vector_parameter,
                                     _variableType=VariableType.VARIABLE
                                     )
             symbol.setComment(_declaration.getComment())
             _declaration.getScope().addSymbol(symbol)
-            var.setTypeSymbol(Either.value(typeSymbol))
+            var.setTypeSymbol(Either.value(type_symbol))
             cls.visit_variable(var)
         _declaration.getDataType().updateScope(_declaration.getScope())
-        cls.visitDataType(_declaration.getDataType())
+        cls.visit_data_type(_declaration.getDataType())
         if _declaration.hasExpression():
             _declaration.getExpression().updateScope(_declaration.getScope())
             cls.visit_expression(_declaration.getExpression())
@@ -356,158 +355,158 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def visit_return_stmt(cls, _returnStmt=None):
+    def visit_return_stmt(cls, _return_stmt=None):
         """
         Private method: Used to visit a single return statement and update its scope.
-        :param _returnStmt: a return statement object.
-        :type _returnStmt: ASTReturnStmt
+        :param _return_stmt: a return statement object.
+        :type _return_stmt: ASTReturnStmt
         """
         from pynestml.modelprocessor.ASTReturnStmt import ASTReturnStmt
-        assert (_returnStmt is not None and isinstance(_returnStmt, ASTReturnStmt)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of return statement provided (%s)!' % type(_returnStmt)
-        if _returnStmt.hasExpression():
-            _returnStmt.getExpression().updateScope(_returnStmt.getScope())
-            cls.visit_expression(_returnStmt.getExpression())
+        assert (_return_stmt is not None and isinstance(_return_stmt, ASTReturnStmt)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of return statement provided (%s)!' % type(_return_stmt)
+        if _return_stmt.hasExpression():
+            _return_stmt.getExpression().updateScope(_return_stmt.getScope())
+            cls.visit_expression(_return_stmt.getExpression())
         return
 
     @classmethod
-    def visit_if_stmt(cls, _ifStmt=None):
+    def visit_if_stmt(cls, _if_stmt=None):
         """
         Private method: Used to visit a single if-statement, update its scope and create the corresponding sub-scope.
-        :param _ifStmt: an if-statement object.
-        :type _ifStmt: ASTIfStmt
+        :param _if_stmt: an if-statement object.
+        :type _if_stmt: ASTIfStmt
         """
         from pynestml.modelprocessor.ASTIfStmt import ASTIfStmt
-        assert (_ifStmt is not None and isinstance(_ifStmt, ASTIfStmt)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of if-statement provided (%s)!' % type(_ifStmt)
-        _ifStmt.getIfClause().updateScope(_ifStmt.getScope())
-        cls.visit_if_clause(_ifStmt.getIfClause())
-        for elIf in _ifStmt.getElifClauses():
-            elIf.updateScope(_ifStmt.getScope())
+        assert (_if_stmt is not None and isinstance(_if_stmt, ASTIfStmt)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of if-statement provided (%s)!' % type(_if_stmt)
+        _if_stmt.getIfClause().updateScope(_if_stmt.getScope())
+        cls.visit_if_clause(_if_stmt.getIfClause())
+        for elIf in _if_stmt.getElifClauses():
+            elIf.updateScope(_if_stmt.getScope())
             cls.visit_elif_clause(elIf)
-        if _ifStmt.hasElseClause():
-            _ifStmt.getElseClause().updateScope(_ifStmt.getScope())
-            cls.visit_else_clause(_ifStmt.getElseClause())
+        if _if_stmt.hasElseClause():
+            _if_stmt.getElseClause().updateScope(_if_stmt.getScope())
+            cls.visit_else_clause(_if_stmt.getElseClause())
         return
 
     @classmethod
-    def visit_if_clause(cls, _ifClause=None):
+    def visit_if_clause(cls, _if_clause=None):
         """
         Private method: Used to visit a single if-clause, update its scope and create the corresponding sub-scope.
-        :param _ifClause: an if clause.
-        :type _ifClause: ASTIfClause
+        :param _if_clause: an if clause.
+        :type _if_clause: ASTIfClause
         """
         from pynestml.modelprocessor.ASTIfClause import ASTIfClause
-        assert (_ifClause is not None and isinstance(_ifClause, ASTIfClause)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of if-clause provided (%s)!' % type(_ifClause)
-        _ifClause.getCondition().updateScope(_ifClause.getScope())
-        cls.visit_expression(_ifClause.getCondition())
-        _ifClause.getBlock().updateScope(_ifClause.getScope())
-        cls.visit_block(_ifClause.getBlock())
+        assert (_if_clause is not None and isinstance(_if_clause, ASTIfClause)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of if-clause provided (%s)!' % type(_if_clause)
+        _if_clause.getCondition().updateScope(_if_clause.getScope())
+        cls.visit_expression(_if_clause.getCondition())
+        _if_clause.getBlock().updateScope(_if_clause.getScope())
+        cls.visit_block(_if_clause.getBlock())
         return
 
     @classmethod
-    def visit_elif_clause(cls, _elifClause=None):
+    def visit_elif_clause(cls, _elif_clause=None):
         """
         Private method: Used to visit a single elif-clause, update its scope and create the corresponding sub-scope.
-        :param _elifClause: an elif clause.
-        :type _elifClause: ASTElifClause
+        :param _elif_clause: an elif clause.
+        :type _elif_clause: ASTElifClause
         """
         from pynestml.modelprocessor.ASTElifClause import ASTElifClause
-        assert (_elifClause is not None and isinstance(_elifClause, ASTElifClause)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of elif-clause provided (%s)!' % type(_elifClause)
-        _elifClause.getCondition().updateScope(_elifClause.getScope())
-        cls.visit_expression(_elifClause.getCondition())
-        _elifClause.getBlock().updateScope(_elifClause.getScope())
-        cls.visit_block(_elifClause.getBlock())
+        assert (_elif_clause is not None and isinstance(_elif_clause, ASTElifClause)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of elif-clause provided (%s)!' % type(_elif_clause)
+        _elif_clause.getCondition().updateScope(_elif_clause.getScope())
+        cls.visit_expression(_elif_clause.getCondition())
+        _elif_clause.getBlock().updateScope(_elif_clause.getScope())
+        cls.visit_block(_elif_clause.getBlock())
         return
 
     @classmethod
-    def visit_else_clause(cls, _elseClause=None):
+    def visit_else_clause(cls, _else_clause=None):
         """
         Private method: Used to visit a single else-clause, update its scope and create the corresponding sub-scope.
-        :param _elseClause: an else clause.
-        :type _elseClause: ASTElseClause
+        :param _else_clause: an else clause.
+        :type _else_clause: ASTElseClause
         """
         from pynestml.modelprocessor.ASTElseClause import ASTElseClause
-        assert (_elseClause is not None and isinstance(_elseClause, ASTElseClause)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of else-clause provided (%s)!' % type(_elseClause)
-        _elseClause.getBlock().updateScope(_elseClause.getScope())
-        cls.visit_block(_elseClause.getBlock())
+        assert (_else_clause is not None and isinstance(_else_clause, ASTElseClause)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of else-clause provided (%s)!' % type(_else_clause)
+        _else_clause.getBlock().updateScope(_else_clause.getScope())
+        cls.visit_block(_else_clause.getBlock())
         return
 
     @classmethod
-    def visit_for_stmt(cls, _forStmt=None):
+    def visit_for_stmt(cls, _for_stmt=None):
         """
         Private method: Used to visit a single for-stmt, update its scope and create the corresponding sub-scope.
-        :param _forStmt: a for-statement.
-        :type _forStmt: ASTForStmt
+        :param _for_stmt: a for-statement.
+        :type _for_stmt: ASTForStmt
         """
         from pynestml.modelprocessor.ASTForStmt import ASTForStmt
-        assert (_forStmt is not None and isinstance(_forStmt, ASTForStmt)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of for-statement provided (%s)!' % type(_forStmt)
-        _forStmt.getFrom().updateScope(_forStmt.getScope())
-        cls.visit_expression(_forStmt.getFrom())
-        _forStmt.getTo().updateScope(_forStmt.getScope())
-        cls.visit_expression(_forStmt.getTo())
-        _forStmt.getBlock().updateScope(_forStmt.getScope())
-        cls.visit_block(_forStmt.getBlock())
+        assert (_for_stmt is not None and isinstance(_for_stmt, ASTForStmt)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of for-statement provided (%s)!' % type(_for_stmt)
+        _for_stmt.getFrom().updateScope(_for_stmt.getScope())
+        cls.visit_expression(_for_stmt.getFrom())
+        _for_stmt.getTo().updateScope(_for_stmt.getScope())
+        cls.visit_expression(_for_stmt.getTo())
+        _for_stmt.getBlock().updateScope(_for_stmt.getScope())
+        cls.visit_block(_for_stmt.getBlock())
         return
 
     @classmethod
-    def visit_while_stmt(cls, _whileStmt=None):
+    def visit_while_stmt(cls, _while_stmt=None):
         """
         Private method: Used to visit a single while-stmt, update its scope and create the corresponding sub-scope.
-        :param _whileStmt: a while-statement.
-        :type _whileStmt: ASTWhileStmt
+        :param _while_stmt: a while-statement.
+        :type _while_stmt: ASTWhileStmt
         """
         from pynestml.modelprocessor.ASTWhileStmt import ASTWhileStmt
-        assert (_whileStmt is not None and isinstance(_whileStmt, ASTWhileStmt)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of while-statement provided (%s)!' % type(_whileStmt)
-        _whileStmt.getCondition().updateScope(_whileStmt.getScope())
-        cls.visit_expression(_whileStmt.getCondition())
-        _whileStmt.getBlock().updateScope(_whileStmt.getScope())
-        cls.visit_block(_whileStmt.getBlock())
+        assert (_while_stmt is not None and isinstance(_while_stmt, ASTWhileStmt)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of while-statement provided (%s)!' % type(_while_stmt)
+        _while_stmt.getCondition().updateScope(_while_stmt.getScope())
+        cls.visit_expression(_while_stmt.getCondition())
+        _while_stmt.getBlock().updateScope(_while_stmt.getScope())
+        cls.visit_block(_while_stmt.getBlock())
         return
 
     @classmethod
-    def visitDataType(cls, _dataType=None):
+    def visit_data_type(cls, _data_type=None):
         """
         Private method: Used to visit a single data-type and update its scope.
-        :param _dataType: a data-type.
-        :type _dataType: ASTDataType
+        :param _data_type: a data-type.
+        :type _data_type: ASTDataType
         """
         from pynestml.modelprocessor.ASTDatatype import ASTDatatype
-        assert (_dataType is not None and isinstance(_dataType, ASTDatatype)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of data-type provided (%s)!' % type(_dataType)
-        if _dataType.isUnitType():
-            _dataType.getUnitType().updateScope(_dataType.getScope())
-            return cls.visit_unit_type(_dataType.getUnitType())
+        assert (_data_type is not None and isinstance(_data_type, ASTDatatype)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of data-type provided (%s)!' % type(_data_type)
+        if _data_type.isUnitType():
+            _data_type.getUnitType().updateScope(_data_type.getScope())
+            return cls.visit_unit_type(_data_type.getUnitType())
         # besides updating the scope no operations are required, since no type symbols are added to the scope.
         return
 
     @classmethod
-    def visit_unit_type(cls, _unitType=None):
+    def visit_unit_type(cls, _unit_type=None):
         """
         Private method: Used to visit a single unit-type and update its scope.
-        :param _unitType: a unit type.
-        :type _unitType: ASTUnitType
+        :param _unit_type: a unit type.
+        :type _unit_type: ASTUnitType
         """
         from pynestml.modelprocessor.ASTUnitType import ASTUnitType
-        assert (_unitType is not None and isinstance(_unitType, ASTUnitType)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of unit-typ provided (%s)!' % type(_unitType)
-        if _unitType.isPowerExpression():
-            _unitType.getBase().updateScope(_unitType.getScope())
-            cls.visit_unit_type(_unitType.getBase())
-        elif _unitType.isEncapsulated():
-            _unitType.getCompoundUnit().updateScope(_unitType.getScope())
-            cls.visit_unit_type(_unitType.getCompoundUnit())
-        elif _unitType.isDiv() or _unitType.isTimes():
-            if isinstance(_unitType.getLhs(), ASTUnitType):  # lhs can be a numeric Or a unit-type
-                _unitType.getLhs().updateScope(_unitType.getScope())
-                cls.visit_unit_type(_unitType.getLhs())
-            _unitType.getRhs().updateScope(_unitType.getScope())
-            cls.visit_unit_type(_unitType.getRhs())
+        assert (_unit_type is not None and isinstance(_unit_type, ASTUnitType)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of unit-typ provided (%s)!' % type(_unit_type)
+        if _unit_type.isPowerExpression():
+            _unit_type.getBase().updateScope(_unit_type.getScope())
+            cls.visit_unit_type(_unit_type.getBase())
+        elif _unit_type.isEncapsulated():
+            _unit_type.getCompoundUnit().updateScope(_unit_type.getScope())
+            cls.visit_unit_type(_unit_type.getCompoundUnit())
+        elif _unit_type.isDiv() or _unit_type.isTimes():
+            if isinstance(_unit_type.getLhs(), ASTUnitType):  # lhs can be a numeric Or a unit-type
+                _unit_type.getLhs().updateScope(_unit_type.getScope())
+                cls.visit_unit_type(_unit_type.getLhs())
+            _unit_type.getRhs().updateScope(_unit_type.getScope())
+            cls.visit_unit_type(_unit_type.getRhs())
         return
 
     @classmethod
@@ -579,52 +578,52 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def visit_unary_operator(cls, _unaryOp=None):
+    def visit_unary_operator(cls, _unary_op=None):
         """
         Private method: Used to visit a single unary operator and update its scope.
-        :param _unaryOp: a single unary operator.
-        :type _unaryOp: ASTUnaryOperator
+        :param _unary_op: a single unary operator.
+        :type _unary_op: ASTUnaryOperator
         """
         from pynestml.modelprocessor.ASTUnaryOperator import ASTUnaryOperator
-        assert (_unaryOp is not None and isinstance(_unaryOp, ASTUnaryOperator)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of unary operator provided (%s)!' % type(_unaryOp)
+        assert (_unary_op is not None and isinstance(_unary_op, ASTUnaryOperator)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of unary operator provided (%s)!' % type(_unary_op)
         return
 
     @classmethod
-    def visit_bit_operator(cls, _bitOp=None):
+    def visit_bit_operator(cls, _bit_op=None):
         """
         Private method: Used to visit a single unary operator and update its scope.
-        :param _bitOp: a single bit operator.
-        :type _bitOp: ASTBitOperator
+        :param _bit_op: a single bit operator.
+        :type _bit_op: ASTBitOperator
         """
         from pynestml.modelprocessor.ASTBitOperator import ASTBitOperator
-        assert (_bitOp is not None and isinstance(_bitOp, ASTBitOperator)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of bit operator provided (%s)!' % type(_bitOp)
+        assert (_bit_op is not None and isinstance(_bit_op, ASTBitOperator)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of bit operator provided (%s)!' % type(_bit_op)
         return
 
     @classmethod
-    def visit_comparison_operator(cls, _comparisonOp=None):
+    def visit_comparison_operator(cls, _comparison_op=None):
         """
         Private method: Used to visit a single comparison operator and update its scope.
-        :param _comparisonOp: a single comparison operator.
-        :type _comparisonOp: ASTComparisonOperator
+        :param _comparison_op: a single comparison operator.
+        :type _comparison_op: ASTComparisonOperator
         """
         from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
-        assert (_comparisonOp is not None and isinstance(_comparisonOp, ASTComparisonOperator)), \
+        assert (_comparison_op is not None and isinstance(_comparison_op, ASTComparisonOperator)), \
             '(PyNestML.SymbolTable.Visitor) No or wrong type of comparison operator provided (%s)!' % type(
-                _comparisonOp)
+                _comparison_op)
         return
 
     @classmethod
-    def visit_logical_operator(cls, _logicalOp=None):
+    def visit_logical_operator(cls, _logical_op=None):
         """
         Private method: Used to visit a single logical operator and update its scope.
-        :param _logicalOp: a single logical operator.
-        :type _logicalOp: ASTLogicalOperator
+        :param _logical_op: a single logical operator.
+        :type _logical_op: ASTLogicalOperator
         """
         from pynestml.modelprocessor.ASTLogicalOperator import ASTLogicalOperator
-        assert (_logicalOp is not None and isinstance(_logicalOp, ASTLogicalOperator)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of logical operator provided (%s)!' % type(_logicalOp)
+        assert (_logical_op is not None and isinstance(_logical_op, ASTLogicalOperator)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of logical operator provided (%s)!' % type(_logical_op)
         return
 
     @classmethod
@@ -640,62 +639,62 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def visit_ode_function(cls, _odeFunction=None):
+    def visit_ode_function(cls, _ode_function=None):
         """
         Private method: Used to visit a single ode-function, create the corresponding symbol and update the scope.
-        :param _odeFunction: a single ode-function.
-        :type _odeFunction: ASTOdeFunction
+        :param _ode_function: a single ode-function.
+        :type _ode_function: ASTOdeFunction
         """
         from pynestml.modelprocessor.ASTOdeFunction import ASTOdeFunction
         from pynestml.modelprocessor.ASTUnitTypeVisitor import ASTUnitTypeVisitor
         from pynestml.modelprocessor.VariableSymbol import BlockType, VariableType
-        assert (_odeFunction is not None and isinstance(_odeFunction, ASTOdeFunction)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of ode-function provided (%s)!' % type(_odeFunction)
-        typeSymbol = PredefinedTypes.getTypeIfExists(ASTUnitTypeVisitor.visitDatatype(_odeFunction.getDataType()))
-        symbol = VariableSymbol(_referenced_object=_odeFunction, _scope=_odeFunction.getScope(),
-                                _name=_odeFunction.getVariableName(),
+        assert (_ode_function is not None and isinstance(_ode_function, ASTOdeFunction)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of ode-function provided (%s)!' % type(_ode_function)
+        type_symbol = PredefinedTypes.getTypeIfExists(ASTUnitTypeVisitor.visitDatatype(_ode_function.getDataType()))
+        symbol = VariableSymbol(_referenced_object=_ode_function, _scope=_ode_function.getScope(),
+                                _name=_ode_function.getVariableName(),
                                 _blockType=BlockType.EQUATION,
-                                _declaringExpression=_odeFunction.getExpression(),
+                                _declaringExpression=_ode_function.getExpression(),
                                 _isPredefined=False, _isFunction=True,
-                                _isRecordable=_odeFunction.isRecordable(),
-                                _typeSymbol=typeSymbol,
+                                _isRecordable=_ode_function.isRecordable(),
+                                _typeSymbol=type_symbol,
                                 _variableType=VariableType.VARIABLE)
-        symbol.setComment(_odeFunction.getComment())
-        _odeFunction.getScope().addSymbol(symbol)
-        _odeFunction.getDataType().updateScope(_odeFunction.getScope())
-        cls.visitDataType(_odeFunction.getDataType())
-        _odeFunction.getExpression().updateScope(_odeFunction.getScope())
-        cls.visit_expression(_odeFunction.getExpression())
+        symbol.setComment(_ode_function.getComment())
+        _ode_function.getScope().addSymbol(symbol)
+        _ode_function.getDataType().updateScope(_ode_function.getScope())
+        cls.visit_data_type(_ode_function.getDataType())
+        _ode_function.getExpression().updateScope(_ode_function.getScope())
+        cls.visit_expression(_ode_function.getExpression())
         return
 
     @classmethod
-    def visit_ode_shape(cls, _odeShape=None):
+    def visit_ode_shape(cls, _ode_shape=None):
         """
         Private method: Used to visit a single ode-shape, create the corresponding symbol and update the scope.
-        :param _odeShape: a single ode-shape.
-        :type _odeShape: ASTOdeShape
+        :param _ode_shape: a single ode-shape.
+        :type _ode_shape: ASTOdeShape
         """
         from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
         from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType
         from pynestml.modelprocessor.Symbol import SymbolKind
-        assert (_odeShape is not None and isinstance(_odeShape, ASTOdeShape)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of ode-shape provided (%s)!' % type(_odeShape)
-        if _odeShape.getVariable().getDifferentialOrder() == 0 and \
-                        _odeShape.getScope().resolveToSymbol(_odeShape.getVariable().getCompleteName(),
-                                                             SymbolKind.VARIABLE) is None:
-            symbol = VariableSymbol(_referenced_object=_odeShape, _scope=_odeShape.getScope(),
-                                    _name=_odeShape.getVariable().getName(),
+        assert (_ode_shape is not None and isinstance(_ode_shape, ASTOdeShape)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of ode-shape provided (%s)!' % type(_ode_shape)
+        if _ode_shape.getVariable().getDifferentialOrder() == 0 and \
+                _ode_shape.getScope().resolveToSymbol(_ode_shape.getVariable().getCompleteName(),
+                                                      SymbolKind.VARIABLE) is None:
+            symbol = VariableSymbol(_referenced_object=_ode_shape, _scope=_ode_shape.getScope(),
+                                    _name=_ode_shape.getVariable().getName(),
                                     _blockType=BlockType.EQUATION,
-                                    _declaringExpression=_odeShape.getExpression(),
+                                    _declaringExpression=_ode_shape.getExpression(),
                                     _isPredefined=False, _isFunction=False,
                                     _isRecordable=True,
                                     _typeSymbol=PredefinedTypes.getRealType(), _variableType=VariableType.SHAPE)
-            symbol.setComment(_odeShape.getComment())
-            _odeShape.getScope().addSymbol(symbol)
-        _odeShape.getVariable().updateScope(_odeShape.getScope())
-        cls.visit_variable(_odeShape.getVariable())
-        _odeShape.getExpression().updateScope(_odeShape.getScope())
-        cls.visit_expression(_odeShape.getExpression())
+            symbol.setComment(_ode_shape.getComment())
+            _ode_shape.getScope().addSymbol(symbol)
+        _ode_shape.getVariable().updateScope(_ode_shape.getScope())
+        cls.visit_variable(_ode_shape.getVariable())
+        _ode_shape.getExpression().updateScope(_ode_shape.getScope())
+        cls.visit_expression(_ode_shape.getExpression())
         return
 
     @classmethod
@@ -726,8 +725,9 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         assert (_block is not None and isinstance(_block, ASTBlockWithVariables)), \
             '(PyNestML.SymbolTable.Visitor) No or wrong type of block with variables provided (%s)!' % type(_block)
         cls.__currentBlockType = BlockType.STATE if _block.isState() else \
-            BlockType.INTERNALS if _block.isInternals() else BlockType.PARAMETERS if _block.isParameters() else \
-                BlockType.INITIAL_VALUES
+            BlockType.INTERNALS if _block.isInternals() else \
+            BlockType.PARAMETERS if _block.isParameters() else \
+            BlockType.INITIAL_VALUES
         for decl in _block.getDeclarations():
             decl.updateScope(_block.getScope())
             cls.visit_declaration(decl)
@@ -795,23 +795,23 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         assert (_line is not None and isinstance(_line, ASTInputLine)), \
             '(PyNestML.SymbolTable.Visitor) No or wrong type of input-line provided (%s)!' % type(_line)
         from pynestml.modelprocessor.VariableSymbol import VariableSymbol
-        bufferType = BlockType.INPUT_BUFFER_SPIKE if _line.isSpike() else BlockType.INPUT_BUFFER_CURRENT
+        buffer_type = BlockType.INPUT_BUFFER_SPIKE if _line.isSpike() else BlockType.INPUT_BUFFER_CURRENT
         if _line.isSpike() and _line.hasDatatype():
             _line.getDatatype().updateScope(_line.getScope())
-            cls.visitDataType(_line.getDatatype())
-            typeSymbol = _line.getDatatype().getTypeSymbol()
+            cls.visit_data_type(_line.getDatatype())
+            type_symbol = _line.getDatatype().getTypeSymbol()
         elif _line.isSpike():
             code, message = Messages.getBufferTypeNotDefined(_line.getName())
             Logger.logMessage(_code=code, _message=message, _errorPosition=_line.getSourcePosition(),
                               _logLevel=LOGGING_LEVEL.WARNING)
-            typeSymbol = PredefinedTypes.getTypeIfExists('nS')
+            type_symbol = PredefinedTypes.getTypeIfExists('nS')
         else:
-            typeSymbol = PredefinedTypes.getTypeIfExists('pA')
-        typeSymbol.is_buffer = True # set it as a buffer
+            type_symbol = PredefinedTypes.getTypeIfExists('pA')
+        type_symbol.is_buffer = True  # set it as a buffer
         symbol = VariableSymbol(_referenced_object=_line, _scope=_line.getScope(), _name=_line.getName(),
-                                _blockType=bufferType, _vectorParameter=_line.getIndexParameter(),
+                                _blockType=buffer_type, _vectorParameter=_line.getIndexParameter(),
                                 _isPredefined=False, _isFunction=False, _isRecordable=False,
-                                _typeSymbol=typeSymbol, _variableType=VariableType.BUFFER)
+                                _typeSymbol=type_symbol, _variableType=VariableType.BUFFER)
         symbol.setComment(_line.getComment())
         _line.getScope().addSymbol(symbol)
         for inputType in _line.getInputTypes():
@@ -832,26 +832,26 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def visit_arithmetic_operator(cls, _arithmeticOp=None):
+    def visit_arithmetic_operator(cls, _arithmetic_op=None):
         """
         Private method: Used to visit a single arithmetic operator and update its scope.
-        :param _arithmeticOp: a single arithmetic operator.
-        :type _arithmeticOp: ASTArithmeticOperator
+        :param _arithmetic_op: a single arithmetic operator.
+        :type _arithmetic_op: ASTArithmeticOperator
         """
         from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
-        assert (_arithmeticOp is not None and isinstance(_arithmeticOp, ASTArithmeticOperator)), \
+        assert (_arithmetic_op is not None and isinstance(_arithmetic_op, ASTArithmeticOperator)), \
             '(PyNestML.SymbolTable.Visitor) No or wrong type of arithmetic operator provided (%s)!' % type(
-                _arithmeticOp)
+                _arithmetic_op)
         return
 
     @classmethod
-    def makeImplicitOdesExplicit(cls, _equationsBlock=None):
+    def make_implicit_odes_explicit(cls, _equations_block=None):
         """
         This method inspects a handed over block of equations and makes all implicit declarations of odes explicit.
         E.g. the declaration g_in'' implies that there have to be, either implicit or explicit, g_in' and g_in
         stated somewhere. This method collects all non explicitly defined elements and adds them to the model.
-        :param _equationsBlock: a single equations block
-        :type _equationsBlock: ASTEquationsBlock
+        :param _equations_block: a single equations block
+        :type _equations_block: ASTEquationsBlock
         """
         from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
         from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
@@ -859,10 +859,10 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         from pynestml.modelprocessor.ASTVariable import ASTVariable
         from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
         from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
-        assert (_equationsBlock is not None and isinstance(_equationsBlock, ASTEquationsBlock)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of equations block provided (%s)!' % type(_equationsBlock)
+        assert (_equations_block is not None and isinstance(_equations_block, ASTEquationsBlock)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of equations block provided (%s)!' % type(_equations_block)
         checked = list()  # used to avoid redundant checking
-        for declaration in _equationsBlock.getDeclarations():
+        for declaration in _equations_block.getDeclarations():
             if declaration in checked:
                 continue
             if isinstance(declaration, ASTOdeShape) and declaration.getVariable().getDifferentialOrder() > 0:
@@ -871,26 +871,26 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
                 # check for each smaller order if it is defined
                 for i in range(1, order):
                     found = False
-                    for shape in _equationsBlock.getOdeShapes():
+                    for shape in _equations_block.getOdeShapes():
                         if shape.getVariable().getName() == declaration.getVariable().getName() and \
-                                        shape.getVariable().getDifferentialOrder() == i:
+                                shape.getVariable().getDifferentialOrder() == i:
                             found = True
                             break
                     # now if we did not found the corresponding declaration, we have to add it by hand
                     if not found:
-                        lhsVariable = ASTVariable.makeASTVariable(_name=declaration.getVariable().getName(),
-                                                                  _differentialOrder=i,
-                                                                  _sourcePosition=ASTSourcePosition.
-                                                                  getAddedSourcePosition())
-                        rhsVariable = ASTVariable.makeASTVariable(_name=declaration.getVariable().getName(),
-                                                                  _differentialOrder=i,
-                                                                  _sourcePosition=ASTSourcePosition.
-                                                                  getAddedSourcePosition())
-                        expression = ASTSimpleExpression.makeASTSimpleExpression(_variable=rhsVariable,
+                        lhs_variable = ASTVariable.makeASTVariable(_name=declaration.getVariable().getName(),
+                                                                   _differentialOrder=i,
+                                                                   _sourcePosition=ASTSourcePosition.
+                                                                   getAddedSourcePosition())
+                        rhs_variable = ASTVariable.makeASTVariable(_name=declaration.getVariable().getName(),
+                                                                   _differentialOrder=i,
+                                                                   _sourcePosition=ASTSourcePosition.
+                                                                   getAddedSourcePosition())
+                        expression = ASTSimpleExpression.makeASTSimpleExpression(_variable=rhs_variable,
                                                                                  _sourcePosition=ASTSourcePosition.
                                                                                  getAddedSourcePosition())
-                        _equationsBlock.getDeclarations().append(
-                            ASTOdeShape.makeASTOdeShape(_lhs=lhsVariable,
+                        _equations_block.getDeclarations().append(
+                            ASTOdeShape.makeASTOdeShape(_lhs=lhs_variable,
                                                         _rhs=expression,
                                                         _sourcePosition=ASTSourcePosition.getAddedSourcePosition()))
             if isinstance(declaration, ASTOdeEquation):
@@ -899,44 +899,37 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
                 # check for each smaller order if it is defined
                 for i in range(1, order):
                     found = False
-                    for ode in _equationsBlock.getOdeEquations():
+                    for ode in _equations_block.getOdeEquations():
                         if ode.getLhs().getName() == declaration.getLhs().getName() and \
-                                        ode.getLhs().getDifferentialOrder() == i:
+                                ode.getLhs().getDifferentialOrder() == i:
                             found = True
                             break
                     # now if we did not found the corresponding declaration, we have to add it by hand
                     if not found:
-                        lhsVariable = ASTVariable.makeASTVariable(_name=declaration.getLhs().getName(),
-                                                                  _differentialOrder=i,
-                                                                  _sourcePosition=ASTSourcePosition.
-                                                                  getAddedSourcePosition())
-                        rhsVariable = ASTVariable.makeASTVariable(_name=declaration.getLhs().getName(),
-                                                                  _differentialOrder=i,
-                                                                  _sourcePosition=ASTSourcePosition.
-                                                                  getAddedSourcePosition())
-                        expression = ASTSimpleExpression.makeASTSimpleExpression(_variable=rhsVariable,
+                        lhs_variable = ASTVariable.makeASTVariable(_name=declaration.getLhs().getName(),
+                                                                   _differentialOrder=i,
+                                                                   _sourcePosition=ASTSourcePosition.
+                                                                   getAddedSourcePosition())
+                        rhs_variable = ASTVariable.makeASTVariable(_name=declaration.getLhs().getName(),
+                                                                   _differentialOrder=i,
+                                                                   _sourcePosition=ASTSourcePosition.
+                                                                   getAddedSourcePosition())
+                        expression = ASTSimpleExpression.makeASTSimpleExpression(_variable=rhs_variable,
                                                                                  _sourcePosition=ASTSourcePosition.
                                                                                  getAddedSourcePosition())
-                        _equationsBlock.getDeclarations().append(
-                            ASTOdeEquation.makeASTOdeEquation(_lhs=lhsVariable,
+                        _equations_block.getDeclarations().append(
+                            ASTOdeEquation.makeASTOdeEquation(_lhs=lhs_variable,
                                                               _rhs=expression,
-                                                              _sourcePosition=ASTSourcePosition.getAddedSourcePosition()))
+                                                              _sourcePosition=ASTSourcePosition
+                                                              .getAddedSourcePosition()))
             checked.append(declaration)
 
     @classmethod
-    def markConductanceBasedBuffers(cls, _odeDeclarations=None, _inputLines=None):
-        """
-        Inspects all handed over buffer definitions and updates them to conductance based if they occur as part of
-        a cond_sum expression.
-        :param _odeDeclarations: a set of ode declarations.
-        :type _odeDeclarations: ASTOdeEquation,ASTOdeFunction
-        :param _inputLines: a set of input buffers.
-        :type _inputLines: ASTInputLine
-        """
+    def mark_conductance_based_buffers(cls, _input_lines):
         from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
         from pynestml.modelprocessor.Symbol import SymbolKind
         # this is the updated version, where nS buffers are marked as conductance based
-        for bufferDeclaration in _inputLines:
+        for bufferDeclaration in _input_lines:
             if bufferDeclaration.isSpike():
                 symbol = bufferDeclaration.getScope().resolveToSymbol(bufferDeclaration.getName(), SymbolKind.VARIABLE)
                 if symbol is not None and symbol.getTypeSymbol().equals(PredefinedTypes.getTypeIfExists('nS')):
@@ -944,79 +937,79 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         return
 
     @classmethod
-    def assignOdeToVariables(cls, _odeBlock=None):
+    def assign_ode_to_variables(cls, _ode_block=None):
         """
         Adds for each variable symbol the corresponding ode declaration if present.
-        :param _odeBlock: a single block of ode declarations.
-        :type _odeBlock: ASTEquations
+        :param _ode_block: a single block of ode declarations.
+        :type _ode_block: ASTEquations
         """
         from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
         from pynestml.modelprocessor.ASTOdeEquation import ASTOdeEquation
         from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
-        assert (_odeBlock is not None and isinstance(_odeBlock, ASTEquationsBlock)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of equations block provided (%s)!' % type(_odeBlock)
-        for decl in _odeBlock.getDeclarations():
+        assert (_ode_block is not None and isinstance(_ode_block, ASTEquationsBlock)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of equations block provided (%s)!' % type(_ode_block)
+        for decl in _ode_block.getDeclarations():
             if isinstance(decl, ASTOdeEquation):
-                cls.addOdeToVariable(decl)
+                cls.add_ode_to_variable(decl)
             if isinstance(decl, ASTOdeShape):
-                cls.addOdeShapeToVariable(decl)
+                cls.add_ode_shape_to_variable(decl)
         return
 
     @classmethod
-    def addOdeToVariable(cls, _odeEquation=None):
+    def add_ode_to_variable(cls, _ode_equation=None):
         """
         Resolves to the corresponding symbol and updates the corresponding ode-declaration. In the case that
-        :param _odeEquation: a single ode-equation
-        :type _odeEquation: ASTOdeEquation
+        :param _ode_equation: a single ode-equation
+        :type _ode_equation: ASTOdeEquation
         """
         from pynestml.modelprocessor.ASTOdeEquation import ASTOdeEquation
         from pynestml.modelprocessor.Symbol import SymbolKind
-        assert (_odeEquation is not None and isinstance(_odeEquation, ASTOdeEquation)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of equation provided (%s)!' % type(_odeEquation)
+        assert (_ode_equation is not None and isinstance(_ode_equation, ASTOdeEquation)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of equation provided (%s)!' % type(_ode_equation)
         # the definition of a differential equations is defined by stating the derivation, thus derive the actual order
-        diffOrder = _odeEquation.getLhs().getDifferentialOrder() - 1
+        diff_order = _ode_equation.getLhs().getDifferentialOrder() - 1
         # we check if the corresponding symbol already exists, e.g. V_m' has already been declared
-        existingSymbol = _odeEquation.getScope().resolveToSymbol(_odeEquation.getLhs().getName() + '\'' * diffOrder,
-                                                           SymbolKind.VARIABLE)
-        if existingSymbol is not None:
-            existingSymbol.setOdeDefinition(_odeEquation.getRhs())
-            _odeEquation.getScope().updateVariableSymbol(existingSymbol)
-            code, message = Messages.getOdeUpdated(_odeEquation.getLhs().getNameOfLhs())
-            Logger.logMessage(_errorPosition=existingSymbol.referenced_object.getSourcePosition(),
+        existing_symbol = _ode_equation.getScope().resolveToSymbol(_ode_equation.getLhs().getName() + '\'' * diff_order,
+                                                                   SymbolKind.VARIABLE)
+        if existing_symbol is not None:
+            existing_symbol.setOdeDefinition(_ode_equation.getRhs())
+            _ode_equation.getScope().updateVariableSymbol(existing_symbol)
+            code, message = Messages.getOdeUpdated(_ode_equation.getLhs().getNameOfLhs())
+            Logger.logMessage(_errorPosition=existing_symbol.referenced_object.getSourcePosition(),
                               _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         else:
-            code, message = Messages.getNoVariableFound(_odeEquation.getLhs().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message, _errorPosition=_odeEquation.getSourcePosition(),
+            code, message = Messages.getNoVariableFound(_ode_equation.getLhs().getNameOfLhs())
+            Logger.logMessage(_code=code, _message=message, _errorPosition=_ode_equation.getSourcePosition(),
                               _logLevel=LOGGING_LEVEL.ERROR)
         return
 
     @classmethod
-    def addOdeShapeToVariable(cls, _odeShape=None):
+    def add_ode_shape_to_variable(cls, _ode_shape=None):
         """
         Adds the shape as the defining equation.
-        :param _odeShape: a single shape object.
-        :type _odeShape: ASTOdeShape
+        :param _ode_shape: a single shape object.
+        :type _ode_shape: ASTOdeShape
         """
         from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
         from pynestml.modelprocessor.Symbol import SymbolKind
         from pynestml.modelprocessor.VariableSymbol import VariableType
-        assert (_odeShape is not None and isinstance(_odeShape, ASTOdeShape)), \
-            '(PyNestML.SymbolTable.Visitor) No or wrong type of shape provided (%s)!' % type(_odeShape)
-        if _odeShape.getVariable().getDifferentialOrder() == 0:
+        assert (_ode_shape is not None and isinstance(_ode_shape, ASTOdeShape)), \
+            '(PyNestML.SymbolTable.Visitor) No or wrong type of shape provided (%s)!' % type(_ode_shape)
+        if _ode_shape.getVariable().getDifferentialOrder() == 0:
             # we only update those which define an ode
             return
         # we check if the corresponding symbol already exists, e.g. V_m' has already been declared
-        existingSymbol = _odeShape.getScope().resolveToSymbol(_odeShape.getVariable().getNameOfLhs(),
-                                                           SymbolKind.VARIABLE)
-        if existingSymbol is not None:
-            existingSymbol.setOdeDefinition(_odeShape.getExpression())
-            existingSymbol.setVariableType(VariableType.SHAPE)
-            _odeShape.getScope().updateVariableSymbol(existingSymbol)
-            code, message = Messages.getOdeUpdated(_odeShape.getVariable().getNameOfLhs())
-            Logger.logMessage(_errorPosition=existingSymbol.referenced_object.getSourcePosition(),
+        existing_symbol = _ode_shape.getScope().resolveToSymbol(_ode_shape.getVariable().getNameOfLhs(),
+                                                                SymbolKind.VARIABLE)
+        if existing_symbol is not None:
+            existing_symbol.setOdeDefinition(_ode_shape.getExpression())
+            existing_symbol.setVariableType(VariableType.SHAPE)
+            _ode_shape.getScope().updateVariableSymbol(existing_symbol)
+            code, message = Messages.getOdeUpdated(_ode_shape.getVariable().getNameOfLhs())
+            Logger.logMessage(_errorPosition=existing_symbol.referenced_object.getSourcePosition(),
                               _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         else:
-            code, message = Messages.getNoVariableFound(_odeShape.getVariable().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message, _errorPosition=_odeShape.getSourcePosition(),
+            code, message = Messages.getNoVariableFound(_ode_shape.getVariable().getNameOfLhs())
+            Logger.logMessage(_code=code, _message=message, _errorPosition=_ode_shape.getSourcePosition(),
                               _logLevel=LOGGING_LEVEL.ERROR)
         return

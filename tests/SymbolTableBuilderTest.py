@@ -65,7 +65,7 @@ class SymbolTableBuilderTest(unittest.TestCase):
                 # update the corresponding symbol tables
                 SymbolTable.initializeSymbolTable(ast.getSourcePosition())
                 for neuron in ast.getNeuronList():
-                    ASTSymbolTableVisitor.updateSymbolTable(neuron)
+                    ASTSymbolTableVisitor.update_symbol_table(neuron)
                     SymbolTable.addNeuronScope(_name=neuron.getName(), _scope=neuron.getScope())
                 assert isinstance(ast, ASTNESTMLCompilationUnit)
         return

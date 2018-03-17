@@ -65,7 +65,7 @@ class ModelParser(object):
         # create and update the corresponding symbol tables
         SymbolTable.initializeSymbolTable(ast.getSourcePosition())
         for neuron in ast.getNeuronList():
-            ASTSymbolTableVisitor.ASTSymbolTableVisitor.updateSymbolTable(neuron)
+            ASTSymbolTableVisitor.ASTSymbolTableVisitor.update_symbol_table(neuron)
             SymbolTable.addNeuronScope(neuron.getName(), neuron.getScope())
         return ast
 

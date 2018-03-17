@@ -150,7 +150,7 @@ class Logger(object):
         return
 
     @classmethod
-    def setCurrentNeuron(cls, _neuron=None):
+    def setCurrentNeuron(cls, _neuron):
         """
         Sets the handed over neuron as the currently processed one. This enables a retrieval of messages for a
         specific neuron.

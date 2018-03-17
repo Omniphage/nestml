@@ -110,7 +110,7 @@ class NestCodeGenerator(object):
         # solve all equations
         workingVersion = self.solveOdesAndShapes(workingVersion)
         # update the symbol table
-        ASTSymbolTableVisitor.updateSymbolTable(workingVersion)
+        ASTSymbolTableVisitor.update_symbol_table(workingVersion)
         self.generateNestCode(workingVersion)
         code, message = Messages.getCodeGenerated(_neuron.getName(), FrontendConfiguration.getTargetPath())
         Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
