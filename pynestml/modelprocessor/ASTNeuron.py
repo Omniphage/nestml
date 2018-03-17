@@ -258,7 +258,7 @@ class ASTNeuron(ASTNode):
     def getInputBlocks(self):
         """
         Returns a list of all input-blocks defined.
-        :return: a list of defined input-blocks.
+        :return: a list of definddded input-blocks.
         :rtype: list(ASTInputBlock)
         """
         ret = list()

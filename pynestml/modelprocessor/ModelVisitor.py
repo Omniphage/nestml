@@ -28,6 +28,7 @@ from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
 from pynestml.modelprocessor.ASTCompoundStmt import ASTCompoundStmt
 from pynestml.modelprocessor.ASTDatatype import ASTDatatype
 from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
+from pynestml.modelprocessor.ASTElement import ASTElement
 from pynestml.modelprocessor.ASTElifClause import ASTElifClause
 from pynestml.modelprocessor.ASTElseClause import ASTElseClause
 from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
@@ -62,645 +63,338 @@ class NESTMLVisitor(object):
     """
     This class represents a standard implementation of a visitor as used to create concrete instances.
     Attributes:
-        __realSelf (NESTMLVisitor): The visitor which will be used during the visiting of a node.
+        __real_self (NESTMLVisitor): The visitor which will be used during the visiting of a node.
     """
-    __realSelf = None
+    __real_self = None  # type: NESTMLVisitor
 
     def __init__(self):
-        """
-        Standard constructor.
-        """
-        self.__realSelf = self
+        # type: () -> None
+        self.__real_self = self
         return
-
-    def visit_compilation_unit(self, _compilation_unit=None):
-        """
-        Visits a single compilation unit, thus all neurons.
-        :param _compilation_unit: a single compilation unit.
-        :type _compilation_unit: ASTNESTMLCompilationUnit
-        """
+
+    def visit_compilation_unit(self, _compilation_unit):
+        # type: (ASTNESTMLCompilationUnit) -> None
         return
-
-    def visit_neuron(self, _neuron=None):
-        """
-        Used to visit a single neuron.
-        :return: a single neuron.
-        :rtype: ASTNeuron
-        """
+
+    def visit_neuron(self, _neuron):
+        # type: (ASTNeuron) -> None
         return
-
-    def visit_body(self, _body=None):
-        """
-        Used to visit a single neuron body.
-        :param _body: a single body element.
-        :type _body: ASTBody
-        """
+
+    def visit_body(self, _body):
+        # type: (ASTBody) -> None
         return
-
-    def visit_function(self, _block=None):
-        """
-        Used to visit a single function block.
-        :param _block: a function block object.
-        :type _block: ASTFunction
-        """
+
+    def visit_function(self, _block):
+        # type: (ASTFunction) -> None
         return
-
-    def visit_update_block(self, _block=None):
-        """
-        Used to visit a single update block.
-        :param _block: an update block object. 
-        :type _block: ASTDynamics
-        """
+
+    def visit_update_block(self, _block):
+        # type: (ASTUpdateBlock) -> None
         return
-
-    def visit_block(self, _block=None):
-        """
-        Used to visit a single block of statements.
-        :param _block: a block object.
-        :type _block: ASTBlock
-        """
+
+    def visit_block(self, _block):
+        # type: (ASTBlock) -> None
         return
-
-    def visit_small_stmt(self, _stmt=None):
-        """
-        Used to visit a single small statement.
-        :param _stmt: a single small statement.
-        :type _stmt: ASTSmallStatement
-        """
+
+    def visit_small_stmt(self, _stmt):
+        # type: (ASTSmallStmt) -> None
         return
-
-    def visit_compound_stmt(self, _stmt=None):
-        """
-        Used to visit a single compound statement.
-        :param _stmt: a single compound statement.
-        :type _stmt: ASTCompoundStatement
-        """
+
+    def visit_compound_stmt(self, _stmt):
+        # type: (ASTCompoundStmt) -> None
         return
-
-    def visit_assignment(self, _assignment=None):
-        """
-        Used to visit a single assignment.
-        :param _assignment: an assignment object.
-        :type _assignment: ASTAssignment
-        """
+
+    def visit_assignment(self, _assignment):
+        # type: (ASTAssignment) -> None
         return
-
-    def visit_function_call(self, _function_call=None):
-        """
-        Private method: Used to visit a single function call and update its corresponding scope.
-        :param _function_call: a function call object.
-        :type _function_call: ASTFunctionCall
-        """
+
+    def visit_function_call(self, _function_call):
+        # type: (ASTFunctionCall) -> None
         return
-
-    def visit_declaration(self, _declaration=None):
-        """
-        Used to visit a single declaration.
-        :param _declaration: a declaration object.
-        :type _declaration: ASTDeclaration
-        """
+
+    def visit_declaration(self, _declaration):
+        # type: (ASTDeclaration) -> None
         return
-
-    def visit_return_stmt(self, _return_stmt=None):
-        """
-        Used to visit a single return statement.
-        :param _return_stmt: a return statement object.
-        :type _return_stmt: ASTReturnStmt
-        """
+
+    def visit_return_stmt(self, _return_stmt):
+        # type: (ASTReturnStmt) -> None
         return
 
-    def visit_if_stmt(self, _if_stmt=None):
-        """
-        Used to visit a single if-statement.
-        :param _if_stmt: an if-statement object.
-        :type _if_stmt: ASTIfStmt
-        """
+    def visit_if_stmt(self, _if_stmt):
+        # type: (ASTIfStmt) -> None
         return
 
-    def visit_if_clause(self, _if_clause=None):
-        """
-        Used to visit a single if-clause.
-        :param _if_clause: an if clause.
-        :type _if_clause: ASTIfClause
-        """
+    def visit_if_clause(self, _if_clause):
+        # type: (ASTIfClause) -> None
         return
 
-    def visit_elif_clause(self, _elif_clause=None):
-        """
-        Used to visit a single elif-clause.
-        :param _elif_clause: an elif clause.
-        :type _elif_clause: ASTElifClause
-        """
+    def visit_elif_clause(self, _elif_clause):
+        # type: (ASTElifClause) -> None
         return
 
-    def visit_else_clause(self, _else_clause=None):
-        """
-        Used to visit a single else-clause.
-        :param _else_clause: an else clause.
-        :type _else_clause: ASTElseClause
-        """
+    def visit_else_clause(self, _else_clause):
+        # type: (ASTElseClause) -> None
         return
 
-    def visit_for_stmt(self, _for_stmt=None):
-        """
-        Private method: Used to visit a single for-stmt.
-        :param _for_stmt: a for-statement.
-        :type _for_stmt: ASTForStmt
-        """
+    def visit_for_stmt(self, _for_stmt):
+        # type: (ASTForStmt) -> None
         return
 
-    def visit_while_stmt(self, _while_stmt=None):
-        """
-        Used to visit a single while-stmt.
-        :param _while_stmt: a while-statement.
-        :type _while_stmt: ASTWhileStmt
-        """
+    def visit_while_stmt(self, _while_stmt):
+        # type: (ASTWhileStmt) -> None
         return
 
-    def visit_datatype(self, _data_type=None):
-        """
-        Used to visit a single data-type. 
-        :param _data_type: a data-type.
-        :type _data_type: ASTDataType
-        """
+    def visit_datatype(self, _data_type):
+        # type: (ASTDatatype) -> None
         return
 
-    def visit_unit_type(self, _unit_type=None):
-        """
-        Used to visit a single unit-type.
-        :param _unit_type: a unit type.
-        :type _unit_type: ASTUnitType
-        """
+    def visit_unit_type(self, _unit_type):
+        # type: (ASTUnitType) -> None
         return
 
-    def visit_expression(self, _expr=None):
-        """
-        Used to visit a single expression.
-        :param _expr: an expression.
-        :type _expr: ASTExpression
-        """
+    def visit_expression(self, _expr):
+        # type: (ASTExpression) -> None
         return
 
-    def visit_simple_expression(self, _expr=None):
-        """
-        Used to visit a single simple expression.
-        :param _expr: a simple expression. 
-        :type _expr: ASTSimpleExpression
-        """
+    def visit_simple_expression(self, _expr):
+        # type: (ASTSimpleExpression) -> None
         return
 
-    def visit_unary_operator(self, _unary_op=None):
-        """
-        Used to visit a single unary operator.
-        :param _unary_op: a single unary operator.
-        :type _unary_op: ASTUnaryOperator
-        """
+    def visit_unary_operator(self, _unary_op):
+        # type: (ASTUnaryOperator) -> None
         return
 
-    def visit_bit_operator(self, _bit_op=None):
-        """
-        Used to visit a single unary operator.
-        :param _bit_op: a single bit operator.
-        :type _bit_op: ASTBitOperator
-        """
+    def visit_bit_operator(self, _bit_op):
+        # type: (ASTBitOperator) -> None
         return
 
-    def visit_comparison_operator(self, _comparison_op=None):
-        """
-        Used to visit a single comparison operator.
-        :param _comparison_op: a single comparison operator.
-        :type _comparison_op: ASTComparisonOperator
-        """
+    def visit_comparison_operator(self, _comparison_op):
+        # type: (ASTComparisonOperator) -> None
         return
 
-    def visit_logical_operator(self, _logical_op=None):
-        """
-        Used to visit a single logical operator.
-        :param _logical_op: a single logical operator.
-        :type _logical_op: ASTLogicalOperator
-        """
+    def visit_logical_operator(self, _logical_op):
+        # type: (ASTLogicalOperator) -> None
         return
 
-    def visit_variable(self, _variable=None):
-        """
-        Used to visit a single variable.
-        :param _variable: a single variable.
-        :type _variable: ASTVariable
-        """
+    def visit_variable(self, _variable):
+        # type: (ASTVariable) -> None
         return
 
-    def visit_ode_function(self, _ode_function=None):
-        """
-        Used to visit a single ode-function.
-        :param _ode_function: a single ode-function.
-        :type _ode_function: ASTOdeFunction
-        """
+    def visit_ode_function(self, _ode_function):
+        # type: (ASTOdeFunction) -> None
         return
 
-    def visit_ode_shape(self, _ode_shape=None):
-        """
-        Used to visit a single ode-shape.
-        :param _ode_shape: a single ode-shape.
-        :type _ode_shape: ASTOdeShape
-        """
+    def visit_ode_shape(self, _ode_shape):
+        # type: (ASTOdeShape) -> None
         return
 
-    def visit_ode_equation(self, _equation=None):
-        """
-        Used to visit a single ode-equation.
-        :param _equation: a single ode-equation.
-        :type _equation: ASTOdeEquation
-        """
+    def visit_ode_equation(self, _equation):
+        # type: (ASTOdeEquation) -> None
         return
 
-    def visit_block_with_variables(self, _block=None):
-        """
-        Used to visit a single block of variables.
-        :param _block: a block with declared variables.
-        :type _block: ASTBlockWithVariables
-        """
+    def visit_block_with_variables(self, _block):
+        # type: (ASTBlockWithVariables) -> None
         return
 
-    def visit_equations_block(self, _block=None):
-        """
-        Used to visit a single equations block.
-        :param _block: a single equations block.
-        :type _block: ASTEquationsBlock
-        """
+    def visit_equations_block(self, _block):
+        # type: (ASTEquationsBlock) -> None
         return
 
-    def visit_input_block(self, _block=None):
-        """
-        Used to visit a single input block.
-        :param _block: a single input block.
-        :type _block: ASTInputBlock
-        """
+    def visit_input_block(self, _block):
+        # type: (ASTInputBlock) -> None
         return
 
-    def visit_output_block(self, _block=None):
-        """
-        Used to visit a single output block.
-        :param _block: a single output block. 
-        :type _block: ASTOutputBlock
-        """
+    def visit_output_block(self, _block):
+        # type: (ASTOutputBlock) -> None
         return
 
-    def visit_input_line(self, _line=None):
-        """
-        Used to visit a single input line.
-        :param _line: a single input line.
-        :type _line: ASTInputLine
-        """
+    def visit_input_line(self, _line):
+        # type: (ASTInputLine) -> None
         return
 
-    def visit_input_type(self, _type=None):
-        """
-        Used to visit a single input type.
-        :param _type: a single input-type.
-        :type _type: ASTInputType
-        """
+    def visit_input_type(self, _type):
+        # type: (ASTInputType) -> None
         return
 
-    def visit_arithmetic_operator(self, _arithmetic_op=None):
-        """
-        Used to visit a single arithmetic operator.
-        :param _arithmetic_op: a single arithmetic operator.
-        :type _arithmetic_op: ASTArithmeticOperator
-        """
+    def visit_arithmetic_operator(self, _arithmetic_op):
+        # type: (ASTArithmeticOperator) -> None
         return
 
-    def visit_parameter(self, _parameter=None):
-        """
-        Used to visit a single parameter.
-        :param _parameter: a single parameter.
-        :type _parameter: ASTParameter
-        """
+    def visit_parameter(self, _parameter):
+        # type: (ASTParameter) -> None
         return
 
-    def end_visit_compilation_unit(self, _compilation_unit=None):
-        """
-        Visits a single compilation unit, thus all neurons.
-        :param _compilation_unit: a single compilation unit.
-        :type _compilation_unit: ASTNESTMLCompilationUnit
-        """
+    def end_visit_compilation_unit(self, _compilation_unit):
+        # type: (ASTNESTMLCompilationUnit) -> None
         return
 
-    def end_visit_neuron(self, _neuron=None):
-        """
-        Used to endvisit a single neuron.
-        :return: a single neuron.
-        :rtype: ASTNeuron
-        """
+    def end_visit_neuron(self, _neuron):
+        # type: (ASTNeuron) -> None
         return
 
-    def end_visit_body(self, _body=None):
-        """
-        Used to endvisit a single neuron body.
-        :param _body: a single body element.
-        :type _body: ASTBody
-        """
+    def end_visit_body(self, _body):
+        # type: (ASTBody) -> None
         return
 
-    def end_visit_function(self, _block=None):
-        """
-        Used to endvisit a single function block.
-        :param _block: a function block object.
-        :type _block: ASTFunction
-        """
+    def end_visit_function(self, _block):
+        # type: (ASTFunction) -> None
         return
 
-    def end_visit_update_block(self, _block=None):
-        """
-        Used to endvisit a single update block.
-        :param _block: an update block object. 
-        :type _block: ASTDynamics
-        """
+    def end_visit_update_block(self, _block):
+        # type: (ASTUpdateBlock) -> None
         return
 
-    def end_visit_block(self, _block=None):
-        """
-        Used to endvisit a single block of statements.
-        :param _block: a block object.
-        :type _block: ASTBlock
-        """
+    def end_visit_block(self, _block):
+        # type: (ASTBlock) -> None
         return
 
-    def end_visit_small_stmt(self, _stmt=None):
-        """
-        Used to endvisit a single small statement.
-        :param _stmt: a single small statement.
-        :type _stmt: ASTSmallStatement
-        """
+    def end_visit_small_stmt(self, _stmt):
+        # type: (ASTSmallStmt) -> None
         return
 
-    def end_visit_compound_stmt(self, _stmt=None):
-        """
-        Used to endvisit a single compound statement.
-        :param _stmt: a single compound statement.
-        :type _stmt: ASTCompoundStatement
-        """
+    def end_visit_compound_stmt(self, _stmt):
+        # type: (ASTCompoundStmt) -> None
         return
 
-    def end_visit_assignment(self, _assignment=None):
-        """
-        Used to endvisit a single assignment.
-        :param _assignment: an assignment object.
-        :type _assignment: ASTAssignment
-        """
+    def end_visit_assignment(self, _assignment):
+        # type: (ASTAssignment) -> None
         return
 
-    def end_visit_function_call(self, _function_call=None):
-        """
-        Private method: Used to endvisit a single function call and update its corresponding scope.
-        :param _function_call: a function call object.
-        :type _function_call: ASTFunctionCall
-        """
+    def end_visit_function_call(self, _function_call):
+        # type: (ASTFunctionCall) -> None
         return
 
-    def end_visit_declaration(self, _declaration=None):
-        """
-        Used to endvisit a single declaration.
-        :param _declaration: a declaration object.
-        :type _declaration: ASTDeclaration
-        """
+    def end_visit_declaration(self, _declaration):
+        # type: (ASTDeclaration) -> None
         return
 
-    def end_visit_return_stmt(self, _return_stmt=None):
-        """
-        Used to endvisit a single return statement.
-        :param _return_stmt: a return statement object.
-        :type _return_stmt: ASTReturnStmt
-        """
+    def end_visit_return_stmt(self, _return_stmt):
+        # type: (ASTReturnStmt) -> None
         return
 
-    def end_visit_if_stmt(self, _if_stmt=None):
-        """
-        Used to endvisit a single if-statement.
-        :param _if_stmt: an if-statement object.
-        :type _if_stmt: ASTIfStmt
-        """
+    def end_visit_if_stmt(self, _if_stmt):
+        # type: (ASTIfStmt) -> None
         return
 
-    def end_visit_if_clause(self, _if_clause=None):
-        """
-        Used to endvisit a single if-clause.
-        :param _if_clause: an if clause.
-        :type _if_clause: ASTIfClause
-        """
+    def end_visit_if_clause(self, _if_clause):
+        # type: (ASTIfClause) -> None
         return
 
-    def end_visit_elif_clause(self, _elif_clause=None):
-        """
-        Used to endvisit a single elif-clause.
-        :param _elif_clause: an elif clause.
-        :type _elif_clause: ASTElifClause
-        """
+    def end_visit_elif_clause(self, _elif_clause):
+        # type: (ASTElifClause) -> None
         return
 
-    def end_visit_else_clause(self, _else_clause=None):
-        """
-        Used to endvisit a single else-clause.
-        :param _else_clause: an else clause.
-        :type _else_clause: ASTElseClause
-        """
+    def end_visit_else_clause(self, _else_clause):
+        # type: (ASTElseClause) -> None
         return
 
-    def end_visit_for_stmt(self, _for_stmt=None):
-        """
-        Private method: Used to endvisit a single for-stmt.
-        :param _for_stmt: a for-statement.
-        :type _for_stmt: ASTForStmt
-        """
+    def end_visit_for_stmt(self, _for_stmt):
+        # type: (ASTForStmt) -> None
         return
 
-    def end_visit_while_stmt(self, _while_stmt=None):
-        """
-        Used to endvisit a single while-stmt.
-        :param _while_stmt: a while-statement.
-        :type _while_stmt: ASTWhileStmt
-        """
+    def end_visit_while_stmt(self, _while_stmt):
+        # type: (ASTWhileStmt) -> None
         return
 
-    def end_visit_datatype(self, _data_type=None):
-        """
-        Used to endvisit a single data-type. 
-        :param _data_type: a data-type.
-        :type _data_type: ASTDataType
-        """
+    def end_visit_datatype(self, _data_type):
+        # type: (ASTDatatype) -> None
         return
 
-    def end_visit_unit_type(self, _unit_type=None):
-        """
-        Used to endvisit a single unit-type.
-        :param _unit_type: a unit type.
-        :type _unit_type: ASTUnitType
-        """
+    def end_visit_unit_type(self, _unit_type):
+        # type: (ASTUnitType) -> None
         return
 
-    def end_visit_expression(self, _expr=None):
-        """
-        Used to endvisit a single expression.
-        :param _expr: an expression.
-        :type _expr: ASTExpression
-        """
+    def end_visit_expression(self, _expr):
+        # type: (ASTExpression) -> None
         return
 
-    def end_visit_simple_expression(self, _expr=None):
-        """
-        Used to endvisit a single simple expression.
-        :param _expr: a simple expression. 
-        :type _expr: ASTSimpleExpression
-        """
+    def end_visit_simple_expression(self, _expr):
+        # type: (ASTSimpleExpression) -> None
         return
 
-    def end_visit_unary_operator(self, _unary_op=None):
-        """
-        Used to endvisit a single unary operator.
-        :param _unary_op: a single unary operator.
-        :type _unary_op: ASTUnaryOperator
-        """
+    def end_visit_unary_operator(self, _unary_op):
+        # type: (ASTUnaryOperator) -> None
         return
 
-    def end_visit_bit_operator(self, _bit_op=None):
-        """
-        Used to endvisit a single unary operator.
-        :param _bit_op: a single bit operator.
-        :type _bit_op: ASTBitOperator
-        """
+    def end_visit_bit_operator(self, _bit_op):
+        # type: (ASTBitOperator) -> None
         return
 
-    def end_visit_comparison_operator(self, _comparison_op=None):
-        """
-        Used to endvisit a single comparison operator.
-        :param _comparison_op: a single comparison operator.
-        :type _comparison_op: ASTComparisonOperator
-        """
+    def end_visit_comparison_operator(self, _comparison_op):
+        # type: (ASTComparisonOperator) -> None
         return
 
-    def end_visit_logical_operator(self, _logical_op=None):
-        """
-        Used to endvisit a single logical operator.
-        :param _logical_op: a single logical operator.
-        :type _logical_op: ASTLogicalOperator
-        """
+    def end_visit_logical_operator(self, _logical_op):
+        # type: (ASTLogicalOperator) -> None
         return
 
-    def end_visit_variable(self, _variable=None):
-        """
-        Used to endvisit a single variable.
-        :param _variable: a single variable.
-        :type _variable: ASTVariable
-        """
+    def end_visit_variable(self, _variable):
+        # type: (ASTVariable) -> None
         return
 
-    def end_visit_ode_function(self, _ode_function=None):
-        """
-        Used to endvisit a single ode-function.
-        :param _ode_function: a single ode-function.
-        :type _ode_function: ASTOdeFunction
-        """
+    def end_visit_ode_function(self, _ode_function):
+        # type: (ASTOdeFunction) -> None
         return
 
-    def end_visit_ode_shape(self, _ode_shape=None):
-        """
-        Used to endvisit a single ode-shape.
-        :param _ode_shape: a single ode-shape.
-        :type _ode_shape: ASTOdeShape
-        """
+    def end_visit_ode_shape(self, _ode_shape):
+        # type: (ASTOdeShape) -> None
         return
 
-    def end_visit_ode_equation(self, _equation=None):
-        """
-        Used to endvisit a single ode-equation.
-        :param _equation: a single ode-equation.
-        :type _equation: ASTOdeEquation
-        """
+    def end_visit_ode_equation(self, _equation):
+        # type: (ASTOdeEquation) -> None
         return
 
-    def end_visit_block_with_variables(self, _block=None):
-        """
-        Used to endvisit a single block of variables.
-        :param _block: a block with declared variables.
-        :type _block: ASTBlockWithVariables
-        """
+    def end_visit_block_with_variables(self, _block):
+        # type: (ASTBlockWithVariables) -> None
         return
 
-    def end_visit_equations_block(self, _block=None):
-        """
-        Used to endvisit a single equations block.
-        :param _block: a single equations block.
-        :type _block: ASTEquationsBlock
-        """
+    def end_visit_equations_block(self, _block):
+        # type: (ASTEquationsBlock) -> None
         return
 
-    def end_visit_input_block(self, _block=None):
-        """
-        Used to endvisit a single input block.
-        :param _block: a single input block.
-        :type _block: ASTInputBlock
-        """
+    def end_visit_input_block(self, _block):
+        # type: (ASTInputBlock) -> None
         return
 
-    def end_visit_output_block(self, _block=None):
-        """
-        Used to endvisit a single output block.
-        :param _block: a single output block. 
-        :type _block: ASTOutputBlock
-        """
+    def end_visit_output_block(self, _block):
+        # type: (ASTOutputBlock) -> None
         return
 
-    def end_visit_input_line(self, _line=None):
-        """
-        Used to endvisit a single input line.
-        :param _line: a single input line.
-        :type _line: ASTInputLine
-        """
+    def end_visit_input_line(self, _line):
+        # type: (ASTInputLine) -> None
         return
 
-    def end_visit_input_type(self, _type=None):
-        """
-        Used to endvisit a single input type.
-        :param _type: a single input-type.
-        :type _type: ASTInputType
-        """
+    def end_visit_input_type(self, _type):
+        # type: (ASTInputType) -> None
         return
 
-    def end_visit_arithmetic_operator(self, _arithmetic_op=None):
-        """
-        Used to endvisit a single arithmetic operator.
-        :param _arithmetic_op: a single arithmetic operator.
-        :type _arithmetic_op: ASTArithmeticOperator
-        """
+    def end_visit_arithmetic_operator(self, _arithmetic_op):
+        # type: (ASTArithmeticOperator) -> None
         return
 
-    def end_visit_parameter(self, _parameter=None):
-        """
-        Used to endvisit a single parameter.
-        :param _parameter: a single parameter.
-        :type _parameter: ASTParameter
-        """
+    def end_visit_parameter(self, _parameter):
+        # type: (ASTParameter) -> None
         return
 
     def set_real_self(self, _visitor):
-        assert (_visitor is not None and isinstance(_visitor, NESTMLVisitor))
-        self.__realSelf = _visitor
+        # type: (NESTMLVisitor) -> None
+        self.__real_self = _visitor
         return
 
     def get_real_self(self):
-        return self.__realSelf
+        # type: () -> NESTMLVisitor
+        return self.__real_self
 
     def handle(self, _node):
+        # type: (ASTElement) -> None
         self.get_real_self().visit(_node)
         self.get_real_self().traverse(_node)
         self.get_real_self().endvisit(_node)
         return
 
     def visit(self, _node):
-        """
-        Dispatcher for visitor pattern.
-        :param _node: The ASTElement to visit
-        :type _node:  ASTElement or inherited
-        """
+        # type: (ASTElement) -> None
+        """Dispatcher for visitor pattern."""
         if isinstance(_node, ASTArithmeticOperator):
             self.visit_arithmetic_operator(_node)
             return
@@ -818,11 +512,8 @@ class NESTMLVisitor(object):
         return
 
     def traverse(self, _node):
-        """
-        Dispatcher for traverse method.
-        :param _node: The ASTElement to visit
-        :type _node: Inherited from ASTElement
-        """
+        # type: (ASTElement) -> None
+        """Dispatcher for traverse method."""
         if isinstance(_node, ASTArithmeticOperator):
             self.traverse_arithmetic_operator(_node)
             return
@@ -940,11 +631,8 @@ class NESTMLVisitor(object):
         return
 
     def endvisit(self, _node):
-        """
-        Dispatcher for endvisit.
-        :param _node: The ASTElement to endvisit
-        :type _node:  ASTElement or inherited
-        """
+        # type: (ASTElement) -> None
+        """Dispatcher for endvisit."""
         if isinstance(_node, ASTArithmeticOperator):
             self.end_visit_arithmetic_operator(_node)
             return
@@ -964,7 +652,7 @@ class NESTMLVisitor(object):
             self.end_visit_body(_node)
             return
         if isinstance(_node, ASTComparisonOperator):
-            self.end_visit_comparison_operator()
+            self.end_visit_comparison_operator(_node)
             return
         if isinstance(_node, ASTCompoundStmt):
             self.end_visit_compound_stmt(_node)
@@ -1062,9 +750,11 @@ class NESTMLVisitor(object):
         return
 
     def traverse_arithmetic_operator(self, _node):
+        # type: (ASTArithmeticOperator) -> None
         return
 
     def traverse_assignment(self, _node):
+        # type: (ASTAssignment) -> None
         if _node.getVariable() is not None:
             _node.getVariable().accept(self.get_real_self())
         if _node.getExpression() is not None:
@@ -1072,30 +762,36 @@ class NESTMLVisitor(object):
         return
 
     def traverse_bit_operator(self, _node):
+        # type: (ASTBitOperator) -> None
         return
 
     def traverse_block(self, _node):
+        # type: (ASTBlock) -> None
         if _node.getStmts() is not None:
             for subnode in _node.getStmts():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_block_with_variables(self, _node):
+        # type: (ASTBlockWithVariables) -> None
         if _node.getDeclarations() is not None:
             for subnode in _node.getDeclarations():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_body(self, _node):
+        # type: (ASTBody) -> None
         if _node.getBodyElements() is not None:
             for subnode in _node.getBodyElements():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_comparison_operator(self, _node):
+        # type: (ASTComparisonOperator) -> None
         return
 
     def traverse_compound_stmt(self, _node):
+        # type: (ASTCompoundStmt) -> None
         if _node.getIfStmt() is not None:
             _node.getIfStmt().accept(self.get_real_self())
         if _node.getWhileStmt() is not None:
@@ -1105,11 +801,13 @@ class NESTMLVisitor(object):
         return
 
     def traverse_datatype(self, _node):
+        # type: (ASTDatatype) -> None
         if _node.getUnitType() is not None:
             _node.getUnitType().accept(self.get_real_self())
         return
 
     def traverse_declaration(self, _node):
+        # type: (ASTDeclaration) -> None
         if _node.getVariables() is not None:
             for subnode in _node.getVariables():
                 subnode.accept(self.get_real_self())
@@ -1122,6 +820,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_elif_clause(self, _node):
+        # type: (ASTElifClause) -> None
         if _node.getCondition() is not None:
             _node.getCondition().accept(self.get_real_self())
         if _node.getBlock() is not None:
@@ -1129,17 +828,20 @@ class NESTMLVisitor(object):
         return
 
     def traverse_else_clause(self, _node):
+        # type: (ASTElseClause) -> None
         if _node.getBlock() is not None:
             _node.getBlock().accept(self.get_real_self())
         return
 
     def traverse_equations_block(self, _node):
+        # type: (ASTEquationsBlock) -> None
         if _node.getDeclarations() is not None:
             for subnode in _node.getDeclarations():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_expression(self, _node):
+        # type: (ASTExpression) -> None
         if _node.getExpression() is not None:
             _node.getExpression().accept(self.get_real_self())
         if _node.getUnaryOperator() is not None:
@@ -1159,6 +861,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_for_stmt(self, _node):
+        # type: (ASTForStmt) -> None
         if _node.getFrom() is not None:
             _node.getFrom().accept(self.get_real_self())
         if _node.getTo() is not None:
@@ -1168,6 +871,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_function(self, _node):
+        # type: (ASTFunction) -> None
         if _node.getParameters() is not None:
             for subnode in _node.getParameters():
                 subnode.accept(self.get_real_self())
@@ -1178,12 +882,14 @@ class NESTMLVisitor(object):
         return
 
     def traverse_function_call(self, _node):
+        # type: (ASTFunctionCall) -> None
         if _node.getArgs() is not None:
             for subnode in _node.getArgs():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_if_clause(self, _node):
+        # type: (ASTIfClause) -> None
         if _node.getCondition() is not None:
             _node.getCondition().accept(self.get_real_self())
         if _node.getBlock() is not None:
@@ -1191,6 +897,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_if_stmt(self, _node):
+        # type: (ASTIfStmt) -> None
         if _node.getIfClause() is not None:
             _node.getIfClause().accept(self.get_real_self())
         for elifClause in _node.getElifClauses():
@@ -1200,35 +907,42 @@ class NESTMLVisitor(object):
         return
 
     def traverse_input_block(self, _node):
+        # type: (ASTInputBlock) -> None
         if _node.getInputLines() is not None:
             for subnode in _node.getInputLines():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_input_line(self, _node):
+        # type: (ASTInputLine) -> None
         if _node.getInputTypes() is not None:
             for subnode in _node.getInputTypes():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_input_type(self, _node):
+        # type: (ASTInputType) -> None
         return
 
     def traverse_logical_operator(self, _node):
+        # type: (ASTLogicalOperator) -> None
         return
 
     def traverse_compilation_unit(self, _node):
+        # type: (ASTNESTMLCompilationUnit) -> None
         if _node.getNeuronList() is not None:
             for subnode in _node.getNeuronList():
                 subnode.accept(self.get_real_self())
         return
 
     def traverse_neuron(self, _node):
+        # type: (ASTNeuron) -> None
         if _node.getBody() is not None:
             _node.getBody().accept(self.get_real_self())
         return
 
     def traverse_ode_equation(self, _node):
+        # type: (ASTOdeEquation) -> None
         if _node.getLhs() is not None:
             _node.getLhs().accept(self.get_real_self())
         if _node.getRhs() is not None:
@@ -1236,6 +950,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_ode_function(self, _node):
+        # type: (ASTOdeFunction) -> None
         if _node.getDataType() is not None:
             _node.getDataType().accept(self.get_real_self())
         if _node.getExpression() is not None:
@@ -1243,6 +958,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_ode_shape(self, _node):
+        # type: (ASTOdeShape) -> None
         if _node.getVariable() is not None:
             _node.getVariable().accept(self.get_real_self())
         if _node.getExpression() is not None:
@@ -1250,19 +966,23 @@ class NESTMLVisitor(object):
         return
 
     def traverse_output_block(self, _node):
+        # type: (ASTOutputBlock) -> None
         return
 
     def traverse_parameter(self, _node):
+        # type: (ASTParameter) -> None
         if _node.getDataType() is not None:
             _node.getDataType().accept(self.get_real_self())
         return
 
     def traverse_return_stmt(self, _node):
+        # type: (ASTReturnStmt) -> None
         if _node.getExpression() is not None:
             _node.getExpression().accept(self.get_real_self())
         return
 
     def traverse_simple_expression(self, _node):
+        # type: (ASTSimpleExpression) -> None
         if _node.getFunctionCall() is not None:
             _node.getFunctionCall().accept(self.get_real_self())
         if _node.getVariable() is not None:
@@ -1270,6 +990,7 @@ class NESTMLVisitor(object):
         return
 
     def traverse_small_stmt(self, _node):
+        # type: (ASTSmallStmt) -> None
         if _node.getAssignment() is not None:
             _node.getAssignment().accept(self.get_real_self())
         if _node.getFunctionCall() is not None:
@@ -1281,9 +1002,11 @@ class NESTMLVisitor(object):
         return
 
     def traverse_unary_operator(self, _node):
+        # type: (ASTUnaryOperator) -> None
         return
 
     def traverse_unit_type(self, _node):
+        # type: (ASTUnitType) -> None
         if _node.getBase() is not None:
             _node.getBase().accept(self.get_real_self())
         if _node.getLhs() is not None:
@@ -1296,14 +1019,17 @@ class NESTMLVisitor(object):
         return
 
     def traverse_update_block(self, _node):
+        # type: (ASTUpdateBlock) -> None
         if _node.getBlock() is not None:
             _node.getBlock().accept(self.get_real_self())
         return
 
     def traverse_variable(self, node):
+        # type: (ASTVariable) -> None
         return
 
     def traverse_while_stmt(self, _node):
+        # type: (ASTWhileStmt) -> None
         if _node.getCondition() is not None:
             _node.getCondition().accept(self.get_real_self())
         if _node.getBlock() is not None:
