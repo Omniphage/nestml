@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import unittest
+from unittest import SkipTest
 
 from antlr4 import *
 from pynestml.generated.PyNESTMLLexer import PyNESTMLLexer
@@ -46,6 +47,7 @@ Logger.initLogger(LOGGING_LEVEL.NO)
 
 class SymbolTableBuilderTest(unittest.TestCase):
     def test(self):
+        raise SkipTest("takes too long")
         for filename in os.listdir(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                                  os.path.join('..', 'models')))):
             if filename.endswith(".nestml"):

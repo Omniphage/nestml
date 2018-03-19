@@ -19,6 +19,8 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import os
+from unittest import SkipTest
+
 from pynestml.frontend.PyNestMLFrontend import main
 
 
@@ -28,6 +30,7 @@ class PyNestMLFrontendTest(unittest.TestCase):
     """
 
     def test(self):
+        raise SkipTest("takes too long")
         path = str(os.path.realpath(os.path.join(os.path.dirname(__file__),os.path.join('..', 'models'))))
         params = list()
         params.append('-path')
