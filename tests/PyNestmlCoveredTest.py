@@ -22,6 +22,7 @@ import unittest
 from nose.tools import nottest
 
 from coverage import Coverage
+from pathlib import Path, PurePath
 
 
 class PyNestmlCoveredTest(unittest.TestCase):
@@ -56,9 +57,8 @@ class PyNestmlCoveredTest(unittest.TestCase):
     def start_coverage(cls):
         # type: () -> None
         cls.coverage.set_option('run:include', [cls.module_under_test])
-        path_segments = cls.module_under_test.split('/')
-        filename = path_segments[len(path_segments) - 1].split('.')[0]
-        cls.coverage.set_option('run:data_file', filename)
+        filename = PurePath(cls.module_under_test).stem
+        cls.coverage.set_option('run:data_file', 'coverage_reports/'+filename)
         cls.coverage.start()
 
     @classmethod
