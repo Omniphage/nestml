@@ -1,5 +1,5 @@
 #
-# unit_system_test.py
+# ExpressionsPrettyPrinterTest.py
 #
 # This file is part of NEST.
 #
@@ -44,7 +44,7 @@ PredefinedFunctions.registerPredefinedFunctions()
 printer = NestPrinter(ExpressionsPrettyPrinter(), NESTReferenceConverter())
 
 
-class UnitSystemTest(PyNestmlCoveredTest):
+class ExpressionsPrettyPrinterTest(PyNestmlCoveredTest):
     """
     Test class for everything Unit related.
     """
@@ -61,7 +61,7 @@ class UnitSystemTest(PyNestmlCoveredTest):
     @nottest
     def set_module_under_test():
         # type: () -> None
-        UnitSystemTest.module_under_test = '../pynestml/codegeneration/ExpressionsPrettyPrinter.py'
+        ExpressionsPrettyPrinterTest.module_under_test = '../pynestml/codegeneration/ExpressionsPrettyPrinter.py'
 
     def test_expression_after_magnitude_conversion_in_direct_assignment(self):
         # type: () -> None
