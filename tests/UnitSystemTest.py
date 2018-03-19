@@ -19,28 +19,21 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
-import os
-import unittest
-
-from coverage import Coverage
-from typing import Dict, Union
+from nose.tools import nottest
 
 from pynestml.codegeneration.ExpressionsPrettyPrinter import ExpressionsPrettyPrinter
 from pynestml.codegeneration.NestPrinter import NestPrinter
 from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
-from pynestml.modelprocessor.ASTCompoundStmt import ASTCompoundStmt
-from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
-from pynestml.modelprocessor.ASTNode import ASTNode
-from pynestml.modelprocessor.ASTSmallStmt import ASTSmallStmt
 from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
 from pynestml.modelprocessor.ModelParser import ModelParser
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.SymbolTable import SymbolTable
-from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.StatementIndexingVisitor import StatementIndexingVisitor
+from tests.PyNestmlCoveredTest import PyNestmlCoveredTest
 from tests.resources.TestModels import TestModels
 
 SymbolTable.initializeSymbolTable(ASTSourcePosition())
@@ -51,65 +44,24 @@ PredefinedFunctions.registerPredefinedFunctions()
 printer = NestPrinter(ExpressionsPrettyPrinter(), NESTReferenceConverter())
 
 
-class StatementIndexingVisitor(NESTMLVisitor):
-
-    def __init__(self):
-        # type: () -> None
-        super(StatementIndexingVisitor, self).__init__()
-        self.result = {}
-
-    def visit_compound_stmt(self, _stmt):
-        # type: (ASTCompoundStmt) -> None
-        self.result[str(_stmt)] = _stmt
-
-    def visit_small_stmt(self, _stmt):
-        # type: (ASTSmallStmt) -> None
-        self.result[str(_stmt)] = _stmt
-
-    def visit_declaration(self, _declaration):
-        # type: (ASTDeclaration) -> None
-        self.result[str(_declaration)] = _declaration
-
-    @staticmethod
-    def visit_node(_node):
-        # type: (ASTNode) -> Dict[str,Union[ASTCompoundStmt,ASTSmallStmt,ASTDeclaration]]
-        instance = StatementIndexingVisitor()
-        _node.accept(instance)
-        return instance.result
-
-
-class UnitSystemTest(unittest.TestCase):
+class UnitSystemTest(PyNestmlCoveredTest):
     """
     Test class for everything Unit related.
     """
-    coverage = None
 
-    @classmethod
-    def setUpClass(cls):
+    test_model = ModelParser.parse_model_from_string(TestModels.MagnitudeConversion.simple_assignment)
+    statements = StatementIndexingVisitor.visit_node(test_model)
+
+    @staticmethod
+    def set_logging_level():
         # type: () -> None
         Logger.setLoggingLevel(LOGGING_LEVEL.NO)
-        cls.test_model = ModelParser.parse_model_from_string(TestModels.MagnitudeConversion.simple_assignment)
-        cls.statements = StatementIndexingVisitor.visit_node(cls.test_model)
-        if os.environ['run_coverage'] == 'True':
-            cls.coverage = Coverage()
-            cls.coverage.start()
-            cls.coverage.set_option('run:include', ["*/ExpressionsPrettyPrinter.py"])
 
-    @classmethod
-    def tearDownClass(cls):
+    @staticmethod
+    @nottest
+    def set_module_under_test():
         # type: () -> None
-        if os.environ['run_coverage'] == 'True':
-            cls.coverage.stop()
-            name, executable, excluded, missing, formatted_missing = cls.coverage.analysis2(
-                "../pynestml/codegeneration/ExpressionsPrettyPrinter.py")
-            total = len(executable) - len(excluded)
-            print 'total: ' + str(total)
-            executed = total - len(missing)
-            print 'executed: ' + str(executed)
-            percentage = executed / total
-            pretty_percentage = round(percentage * 100, 2)
-            threshold = 95.00
-            assert pretty_percentage > threshold, "Test coverage is %s. Target is %s" % (pretty_percentage, threshold)
+        UnitSystemTest.module_under_test = '../pynestml/codegeneration/ExpressionsPrettyPrinter.py'
 
     def test_expression_after_magnitude_conversion_in_direct_assignment(self):
         # type: () -> None
