@@ -204,15 +204,15 @@ class ASTAssignment(ASTNode):
         """
         ret = str(self.__lhsVariable)
         if self.isCompoundQuotient():
-            ret += '/='
+            ret += ' /= '
         elif self.isCompoundProduct():
-            ret += '*='
+            ret += ' *= '
         elif self.isCompoundMinus():
-            ret += '-='
+            ret += ' -= '
         elif self.isCompoundSum():
-            ret += '+='
+            ret += ' += '
         else:
-            ret += '='
+            ret += ' = '
         ret += str(self.__expression)
         return ret
 

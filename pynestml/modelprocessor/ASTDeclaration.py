@@ -270,11 +270,11 @@ class ASTDeclaration(ASTNode):
             ret += str(var)
             if self.getVariables().index(var) < len(self.getVariables()) - 1:
                 ret += ','
-        ret += ' ' + str(self.getDataType()) + ' '
+        ret += ' ' + str(self.getDataType())
         if self.hasSizeParameter():
             ret += '[' + self.getSizeParameter() + ']'
         if self.hasExpression():
-            ret += ' = ' + str(self.getExpression()) + ' '
+            ret += ' = ' + str(self.getExpression())
         if self.hasInvariant():
             ret += ' [[' + str(self.getInvariant()) + ']]'
         return ret

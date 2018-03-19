@@ -48,7 +48,9 @@ class ASTBuilderVisitor(ParseTreeVisitor):
             neurons.append(self.visit(child))
         from pynestml.modelprocessor.ASTNESTMLCompilationUnit import ASTNESTMLCompilationUnit
         # extract the name of the artifact from the context
-        artifactName = ntpath.basename(ctx.start.source[1].fileName)
+        artifactName = "TestModel.nestml"
+        if hasattr(ctx.start.source[1], "fileName"):
+            artifactName = ntpath.basename(ctx.start.source[1].fileName)
         compilationUnit = ASTNESTMLCompilationUnit. \
             makeASTNESTMLCompilationUnit(_listOfNeurons=neurons, _sourcePosition=sourcePosition,
                                          _artifactName=artifactName)
@@ -548,7 +550,9 @@ class ASTBuilderVisitor(ParseTreeVisitor):
         # and update are defined once
         from pynestml.modelprocessor.CoCoEachBlockUniqueAndDefined import CoCoEachBlockUniqueAndDefined
         from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-        artifactName = ntpath.basename(ctx.start.source[1].fileName)
+        artifactName = "TestModel.nestml"
+        if hasattr(ctx.start.source[1],"fileName"):
+            artifactName = ntpath.basename(ctx.start.source[1].fileName)
         neuron = ASTNeuron.makeASTNeuron(_name=name, _body=body, _sourcePosition=sourcePos, _artifactName=artifactName)
         # update the comments
         neuron.setComment(self.__comments.visit(ctx))

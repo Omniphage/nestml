@@ -62,7 +62,7 @@ class NestPrinter(object):
             '(PyNestML.CodeGeneration.Printer) No or wrong type of expression provided (%s)!' % type(_ast)
         return self.__expressionPrettyPrinter.printExpression(_ast)
 
-    def printMethodCall(self, _ast=None):
+    def print_function_call(self, _ast=None):
         """
         Prints a single handed over function call.
         :param _ast: a single function call.
