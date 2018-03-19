@@ -79,19 +79,18 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
     @classmethod
     def update_symbol_table(cls, _ast_neuron):
         # type: (ASTNeuron) -> None
-        Logger.setCurrentNeuron(_ast_neuron)
-        code, message = Messages.getStartBuildingSymbolTable()
-        Logger.logMessage(_neuron=_ast_neuron, _code=code, _errorPosition=_ast_neuron.getSourcePosition(),
-                          _message=message, _logLevel=LOGGING_LEVEL.INFO)
         symbol_table_visitor = ASTSymbolTableVisitor()
         symbol_table_visitor.handle(_ast_neuron)
-        Logger.setCurrentNeuron(None)
         return
 
     def visit_neuron(self, _neuron):
         # type: (ASTNeuron) -> None
         # before starting the work on the neuron, make everything which was implicit explicit
         # but if we have a model without an equations block, just skip this step
+        Logger.setCurrentNeuron(_neuron)
+        code, message = Messages.getStartBuildingSymbolTable()
+        Logger.logMessage(_neuron=_neuron, _code=code, _errorPosition=_neuron.getSourcePosition(),
+                          _message=message, _logLevel=LOGGING_LEVEL.INFO)
         if _neuron.getEquationsBlocks() is not None:
             self.make_implicit_odes_explicit(_neuron.getEquationsBlocks())
         scope = Scope(_scopeType=ScopeType.GLOBAL, _sourcePosition=_neuron.getSourcePosition())
@@ -122,6 +121,7 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
             equation_block = _neuron.getEquationsBlocks()
             self.assign_ode_to_variables(equation_block)
         CoCosManager.postOdeSpecificationChecks(_neuron)
+        Logger.setCurrentNeuron(None)
         return
 
     def visit_body(self, _body):

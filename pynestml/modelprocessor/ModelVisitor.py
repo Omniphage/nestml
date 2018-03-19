@@ -28,7 +28,6 @@ from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
 from pynestml.modelprocessor.ASTCompoundStmt import ASTCompoundStmt
 from pynestml.modelprocessor.ASTDatatype import ASTDatatype
 from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
-from pynestml.modelprocessor.ASTElement import ASTElement
 from pynestml.modelprocessor.ASTElifClause import ASTElifClause
 from pynestml.modelprocessor.ASTElseClause import ASTElseClause
 from pynestml.modelprocessor.ASTEquationsBlock import ASTEquationsBlock
