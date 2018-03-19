@@ -17,10 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.utils.Messages import MessageCode
-from enum import Enum
-from collections import OrderedDict
 import json
+from collections import OrderedDict
+from enum import Enum
+
+from pynestml.utils.Messages import MessageCode
 
 
 class Logger(object):
@@ -105,6 +106,8 @@ class Logger(object):
         elif cls.__currentNeuron is not None:
             cls.__log[cls.__currMessage] = (cls.__currentNeuron.getArtifactName(), cls.__currentNeuron,
                                             _logLevel, _code, _errorPosition, _message)
+        else:
+            cls.__log[cls.__currMessage] = ("UNKNOWN NEURON", None, _logLevel, _code, _errorPosition, _message)
         cls.__currMessage += 1
         if cls.__loggingLevel.value <= _logLevel.value:
             print('[' + str(cls.__currMessage) + ','
@@ -186,7 +189,7 @@ class Logger(object):
         for (artifactName, neuron, logLevel, code, errorPosition, message) in cls.__log.values():
             if (_level == logLevel if _level is not None else True) and (
                     _neuron if _neuron is not None else True) and (_neuron.getArtifactName() == artifactName
-                                                                   if _neuron is not None else True):
+            if _neuron is not None else True):
                 ret.append((neuron, logLevel, message))
         return ret
 

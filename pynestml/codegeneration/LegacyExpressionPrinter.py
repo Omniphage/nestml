@@ -34,8 +34,8 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
     """
     An adjusted version of the pretty printer which does not print units with literals.
     """
-    __referenceConverter = None
-    __typesPrinter = None
+    _reference_converter = None
+    _types_printer = None
 
     def __init__(self, _referenceConverter=None):
         """

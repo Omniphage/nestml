@@ -17,12 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-import os
 import unittest
 from nose.tools import nottest
-
-from coverage import Coverage
-from pathlib import Path, PurePath
 
 
 class PyNestmlCoveredTest(unittest.TestCase):
@@ -38,5 +34,3 @@ class PyNestmlCoveredTest(unittest.TestCase):
     def set_module_under_test():
         # type: () -> None
         raise NotImplementedError("Test case must implement set_module_under_test")
-
-

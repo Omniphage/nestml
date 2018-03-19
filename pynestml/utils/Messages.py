@@ -884,6 +884,10 @@ class Messages(object):
         message = 'Not convertable unit \'%s\' used, 1 assumed as factor!' % _name
         return MessageCode.NOT_NEUROSCIENCE_UNIT, message
 
+    @classmethod
+    def get_unsupported_expression_in_pretty_printer(cls):
+        return MessageCode.UNKNOWN_EXPRESSION, "Unsupported expression in expression pretty printer!"
+
 
 class MessageCode(Enum):
     """
@@ -949,3 +953,4 @@ class MessageCode(Enum):
     INTERNAL_WARNING = 56
     OPERATION_NOT_DEFINED = 57
     CONVOLVE_NEEDS_BUFFER_PARAMETER = 58
+    UNKNOWN_EXPRESSION = 59

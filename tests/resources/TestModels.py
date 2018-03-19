@@ -5,6 +5,8 @@ class TestModels(object):
             state:
                 milliVolt mV = 10V
                 Volt V
+                Integer integer
+                String string
             end
             function take_mV(milliVolt mV):
                 return
@@ -16,6 +18,9 @@ class TestModels(object):
                 return milliVolt
             end
             update:
+                Integer = 1
+                Integer = inf
+                String = "testString"
                 milliVolt = 10V
                 milliVolt = 10V + 5mV + 20V + 1kV
                 Volt += 1200mV

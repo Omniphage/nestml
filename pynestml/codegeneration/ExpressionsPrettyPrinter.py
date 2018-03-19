@@ -26,6 +26,7 @@ from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
 from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 from pynestml.utils.ASTUtils import ASTUtils
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
+from pynestml.utils.Messages import Messages
 
 
 class ExpressionsPrettyPrinter(object):
@@ -35,19 +36,19 @@ class ExpressionsPrettyPrinter(object):
     implement own IReferenceConverter specialisation.
     This class is used to transform only parts of the procedural language and not nestml in whole.
     """
-    __referenceConverter = None
-    __typesPrinter = None
+    _reference_converter = None
+    _types_printer = None
 
     def __init__(self, _reference_converter=None, _types_printer=None):
         # type: (IReferenceConverter, TypesPrinter) -> None
         if _reference_converter is not None:
-            self.__referenceConverter = _reference_converter
+            self._reference_converter = _reference_converter
         else:
-            self.__referenceConverter = IdempotentReferenceConverter()
+            self._reference_converter = IdempotentReferenceConverter()
         if _types_printer is not None:
-            self.__typesPrinter = _types_printer
+            self._types_printer = _types_printer
         else:
-            self.__typesPrinter = TypesPrinter()
+            self._types_printer = TypesPrinter()
 
     def print_expression(self, _expr):
         # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
@@ -60,54 +61,55 @@ class ExpressionsPrettyPrinter(object):
         # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.hasUnit():
-                return self.__typesPrinter.pretty_print(_expr.getNumericLiteral()) + '*' + \
-                       self.__referenceConverter.convertNameReference(_expr.getVariable())
+                return self._types_printer.pretty_print(_expr.getNumericLiteral()) + '*' + \
+                       self._reference_converter.convertNameReference(_expr.getVariable())
             elif _expr.isNumericLiteral():
                 return str(_expr.getNumericLiteral())
             elif _expr.isInfLiteral():
-                return self.__referenceConverter.convertConstant('inf')
+                return self._reference_converter.convertConstant('inf')
             elif _expr.isString():
-                return self.__typesPrinter.pretty_print(_expr.getString())
+                return self._types_printer.pretty_print(_expr.getString())
             elif _expr.isBooleanTrue():
-                return self.__typesPrinter.pretty_print(True)
+                return self._types_printer.pretty_print(True)
             elif _expr.isBooleanFalse():
-                return self.__typesPrinter.pretty_print(False)
+                return self._types_printer.pretty_print(False)
             elif _expr.isVariable():
-                return self.__referenceConverter.convertNameReference(_expr.getVariable())
+                return self._reference_converter.convertNameReference(_expr.getVariable())
             elif _expr.isFunctionCall():
                 return self.print_function_call(_expr.getFunctionCall())
         elif isinstance(_expr, ASTExpression):
             # a unary operator
             if _expr.isUnaryOperator():
-                op = self.__referenceConverter.convertUnaryOp(_expr.getUnaryOperator())
+                op = self._reference_converter.convertUnaryOp(_expr.getUnaryOperator())
                 rhs = self.print_expression(_expr.getExpression())
                 return op % rhs
             # encapsulated in brackets
             elif _expr.isEncapsulated():
-                return self.__referenceConverter.convertEncapsulated() % self.print_expression(_expr.getExpression())
+                return self._reference_converter.convertEncapsulated() % self.print_expression(_expr.getExpression())
             # logical not
             elif _expr.isLogicalNot():
-                op = self.__referenceConverter.convertLogicalNot()
+                op = self._reference_converter.convertLogicalNot()
                 rhs = self.print_expression(_expr.getExpression())
                 return op % rhs
             # compound expression with lhs + rhs
             elif _expr.isCompoundExpression():
                 lhs = self.print_expression(_expr.getLhs())
-                op = self.__referenceConverter.convertBinaryOp(_expr.getBinaryOperator())
+                op = self._reference_converter.convertBinaryOp(_expr.getBinaryOperator())
                 rhs = self.print_expression(_expr.getRhs())
                 return op % (lhs, rhs)
             elif _expr.isTernaryOperator():
                 condition = self.print_expression(_expr.getCondition())
                 if_true = self.print_expression(_expr.getIfTrue())
                 if_not = self.print_expression(_expr.getIfNot())
-                return self.__referenceConverter.convertTernaryOperator() % (condition, if_true, if_not)
-        else:
-            Logger.logMessage('Unsupported expression in expression pretty printer!', LOGGING_LEVEL.ERROR)
-            return ''
+                return self._reference_converter.convertTernaryOperator() % (condition, if_true, if_not)
+        code, message = Messages.get_unsupported_expression_in_pretty_printer()
+        Logger.logMessage(_code=code, _message=message, _errorPosition=_expr.getSourcePosition(),
+                          _logLevel=LOGGING_LEVEL.ERROR)
+        return ''
 
     def print_function_call(self, _function_call):
         # type: (ASTFunctionCall) -> str
-        function_name = self.__referenceConverter.convertFunctionCall(_function_call)
+        function_name = self._reference_converter.convertFunctionCall(_function_call)
         if ASTUtils.needsArguments(_function_call):
             return function_name % self.print_function_call_arguments(_function_call)
         else:
@@ -134,3 +136,5 @@ class TypesPrinter(object):
             return 'false'
         elif isinstance(_element, int) or isinstance(_element, float):
             return str(_element)
+        elif isinstance(_element, str):
+            return _element
