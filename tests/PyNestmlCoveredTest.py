@@ -58,7 +58,7 @@ class PyNestmlCoveredTest(unittest.TestCase):
         # type: () -> None
         cls.coverage.set_option('run:include', [cls.module_under_test])
         filename = PurePath(cls.module_under_test).stem
-        cls.coverage.set_option('run:data_file', 'coverage_reports/'+filename)
+        cls.coverage.set_option('run:data_file', 'coverage_reports/'+filename+'.rep')
         cls.coverage.start()
 
     @classmethod
