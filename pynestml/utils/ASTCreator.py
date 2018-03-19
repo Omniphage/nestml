@@ -90,7 +90,7 @@ class ASTCreator(object):
         :rtype: ASTSmallStmt or ASTCompoundStmt
         """
         try:
-            return ModelParser.parseStmt(_stmtAsString)
+            return ModelParser.parse_stmt(_stmtAsString)
         except:
             raise RuntimeError('Cannot parse statement.')
 
@@ -104,7 +104,7 @@ class ASTCreator(object):
         :rtype: ASTDeclaration
         """
         try:
-            return ModelParser.parseDeclaration(_declarationAsString)
+            return ModelParser.parse_declaration(_declarationAsString)
         except:
             raise RuntimeError('Cannot parse declaration statement.')
 
@@ -118,7 +118,7 @@ class ASTCreator(object):
         :rtype: ASTOdeShape
         """
         try:
-            return ModelParser.parseShape(_shapeAsString)
+            return ModelParser.parse_shape(_shapeAsString)
         except:
             raise RuntimeError('Cannot parse shape statement.')
 
@@ -132,6 +132,6 @@ class ASTCreator(object):
         :rtype: ASTAssignment
         """
         try:
-            return ModelParser.parseAssignment(_assignmentAsString)
+            return ModelParser.parse_assignment(_assignmentAsString)
         except:
             raise RuntimeError('Cannot parse assignment statement.')

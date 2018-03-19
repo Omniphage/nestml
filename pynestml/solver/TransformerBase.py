@@ -67,12 +67,12 @@ class TransformerBase(object):
         """
         try:
             (var, value) = ASTUtils.getTupleFromSingleDictEntry(_declaration)
-            tmp = ModelParser.parseExpression(value)
+            tmp = ModelParser.parse_expression(value)
             vectorVariable = ASTUtils.getVectorizedVariable(tmp, _neuron.getScope())
             declarationString = var + ' real' + (
                 '[' + vectorVariable.getVectorParameter() + ']'
                 if vectorVariable is not None and vectorVariable.hasVectorParameter() else '') + ' = ' + value
-            astDeclaration = ModelParser.parseDeclaration(declarationString)
+            astDeclaration = ModelParser.parse_declaration(declarationString)
             if vectorVariable is not None:
                 astDeclaration.setSizeParameter(vectorVariable.getVectorParameter())
             _neuron.addToInternalBlock(astDeclaration)
@@ -154,13 +154,13 @@ class TransformerBase(object):
         """
         try:
             (var, value) = _declaration
-            tmp = ModelParser.parseExpression(value)
+            tmp = ModelParser.parse_expression(value)
             vectorVariable = ASTUtils.getVectorizedVariable(tmp, _neuron.getScope())
             declarationString = var + ' real' + (
                 '[' + vectorVariable.getVectorParameter() + ']'
                 if vectorVariable is not None and vectorVariable.hasVectorParameter() else '') + ' = ' + \
                                 value
-            astDeclaration = ModelParser.parseDeclaration(declarationString)
+            astDeclaration = ModelParser.parse_declaration(declarationString)
             if vectorVariable is not None:
                 astDeclaration.setSizeParameter(vectorVariable.getVectorParameter())
             _neuron.addToInitialValuesBlock(astDeclaration)

@@ -62,7 +62,7 @@ class MagnitudeCompatibilityTest(unittest.TestCase):
     """
     def test(self):
         #Logger.initLogger(LOGGING_LEVEL.INFO)
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                        'resources', 'MagnitudeCompatibilityTest.nestml'))))
         #Logger.setCurrentNeuron(model.getNeuronList()[0])

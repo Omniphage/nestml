@@ -85,49 +85,49 @@ class UnitSystemTest(unittest.TestCase):
         Logger.setLoggingLevel(LOGGING_LEVEL.NO)
 
     def test_expression_after_magnitude_conversion_in_direct_assignment(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'DirectAssignmentWithDifferentButCompatibleUnits.nestml'))
         printed_rhs_expression = print_rhs_of_first_assignment_in_update_block(model)
         self.assertEqual(printed_rhs_expression, '1000.0 * (10*V)')
 
     def test_expression_after_nested_magnitude_conversion_in_direct_assignment(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'DirectAssignmentWithDifferentButCompatibleNestedUnits.nestml'))
         printed_rhs_expression = print_rhs_of_first_assignment_in_update_block(model)
         self.assertEqual(printed_rhs_expression, '1000.0 * (10*V + 0.001 * (5*mV) + 20*V + 1000.0 * (1*kV))')
 
     def test_expression_after_magnitude_conversion_in_compound_assignment(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'CompoundAssignmentWithDifferentButCompatibleUnits.nestml'))
         printed_rhs_expression = print_rhs_of_first_assignment_in_update_block(model)
         self.assertEqual(printed_rhs_expression, '0.001 * (1200*mV)')
 
     def test_expression_after_magnitude_conversion_in_declaration(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'DeclarationWithDifferentButCompatibleUnits.nestml'))
         printed_rhs_expression = print_rhs_of_first_declaration_in_state_block(model)
         self.assertEqual(printed_rhs_expression, '1000.0 * (10*V)')
 
     def test_expression_after_magnitude_conversion_in_standalone_function_call(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'FunctionCallWithDifferentButCompatibleUnits.nestml'))
         printed_function_call = print_first_function_call_in_update_block(model)
         self.assertEqual(printed_function_call, 'foo(1000.0 * (10*V))')
 
     def test_expression_after_magnitude_conversion_in_rhs_function_call(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'RhsFunctionCallWithDifferentButCompatibleUnits.nestml'))
         printed_function_call = print_rhs_of_first_assignment_in_update_block(model)
         self.assertEqual(printed_function_call, 'foo(1000.0 * (10*V))')
 
     def test_return_stmt_after_magnitude_conversion_in_function_body(self):
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'resources')),
                          'FunctionBodyReturnStatementWithDifferentButCompatibleUnits.nestml'))
         printed_return_stmt = print_first_return_statement_in_first_declared_function(model)

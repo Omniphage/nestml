@@ -81,7 +81,7 @@ class ExpressionTypeCalculationTest(unittest.TestCase):
     # TODO: this test needs to be refactored.
     def test(self):
         Logger.initLogger(LOGGING_LEVEL.NO)
-        model = ModelParser.parseModel(
+        model = ModelParser.parse_model_from_file(
             os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                        'resources', 'ExpressionTypeTest.nestml'))))
         Logger.setCurrentNeuron(model.getNeuronList()[0])
