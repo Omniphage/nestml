@@ -37,7 +37,7 @@ class NestPrinter(object):
     """
     __expressionPrettyPrinter = None
 
-    def __init__(self, _expressionPrettyPrinter, _referenceConvert=None):
+    def __init__(self, _expressionPrettyPrinter=None, _referenceConvert=None):
         """
         The standard constructor.
         :param _referenceConvert: a single reference converter
@@ -60,7 +60,7 @@ class NestPrinter(object):
         """
         assert (_ast is not None and (isinstance(_ast, ASTSimpleExpression) or isinstance(_ast, ASTExpression))), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of expression provided (%s)!' % type(_ast)
-        return self.__expressionPrettyPrinter.printExpression(_ast)
+        return self.__expressionPrettyPrinter.print_expression(_ast)
 
     def print_function_call(self, _ast=None):
         """
@@ -72,7 +72,7 @@ class NestPrinter(object):
         """
         assert (_ast is not None and isinstance(_ast, ASTFunctionCall)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of function call provided (%s)!' % type(_ast)
-        return self.__expressionPrettyPrinter.printFunctionCall(_ast)
+        return self.__expressionPrettyPrinter.print_function_call(_ast)
 
     def printComparisonOperator(self, _forStmt=None):
         """

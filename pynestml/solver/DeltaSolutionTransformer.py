@@ -55,7 +55,7 @@ class DeltaSolutionTransformer(TransformerBase):
         expressionPrinter = ExpressionsPrettyPrinter()
         # now apply spikes from the buffer to the state variables
         for call in i_sumCalls:
-            bufferName = expressionPrinter.printExpression(call.getArgs()[1])
+            bufferName = expressionPrinter.print_expression(call.getArgs()[1])
             _solverOutput.ode_var_update_instructions.append(
                 _neuron.getEquations()[0].getLhs().getName() + '+=' + bufferName)
 

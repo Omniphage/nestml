@@ -28,11 +28,6 @@ from pathlib import Path, PurePath
 class PyNestmlCoveredTest(unittest.TestCase):
     module_under_test = None
 
-    if os.environ['run_coverage'] == 'True':
-        coverage = Coverage()
-    else:
-        coverage = None
-
     @staticmethod
     def set_logging_level():
         # type: () -> None
@@ -44,35 +39,4 @@ class PyNestmlCoveredTest(unittest.TestCase):
         # type: () -> None
         raise NotImplementedError("Test case must implement set_module_under_test")
 
-    @classmethod
-    def setUpClass(cls):
-        # type: () -> None
-        cls.set_logging_level()
-        cls.set_module_under_test()
-        assert cls.module_under_test is not None, "set_module_under_test must set the module_under_test class attribute"
-        if os.environ['run_coverage'] == 'True':
-            cls.start_coverage()
 
-    @classmethod
-    def start_coverage(cls):
-        # type: () -> None
-        cls.coverage.set_option('run:include', [cls.module_under_test])
-        filename = PurePath(cls.module_under_test).stem
-        cls.coverage.set_option('run:data_file', 'coverage_reports/'+filename+'.rep')
-        cls.coverage.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        # type: () -> None
-        if os.environ['run_coverage'] == 'True':
-            cls.stop_coverage()
-
-    @classmethod
-    def stop_coverage(cls):
-        # type: () -> None
-        cls.coverage.stop()
-        cls.coverage.save()
-        percentage = cls.coverage.report(cls.module_under_test)
-        pretty_percentage = round(percentage, 2)
-        threshold = 95.00
-        #assert pretty_percentage > threshold, "Test coverage is %s%%. Target is %s%%" % (pretty_percentage, threshold)

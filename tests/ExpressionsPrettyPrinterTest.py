@@ -19,6 +19,18 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
+import os
+
+from coverage import Coverage
+coverage = None
+
+if os.environ['run_coverage'] == 'True':
+    # type: () -> None
+    coverage = Coverage()
+    coverage.set_option('run:include', ['../pynestml/codegeneration/ExpressionsPrettyPrinter.py'])
+    coverage.set_option('run:data_file', 'coverage_reports/ExpressionsPrettyPrinter.rep')
+    coverage.start()
+
 from nose.tools import nottest
 
 from pynestml.codegeneration.ExpressionsPrettyPrinter import ExpressionsPrettyPrinter
@@ -104,3 +116,7 @@ class ExpressionsPrettyPrinterTest(PyNestmlCoveredTest):
         stmt = self.statements["return milliVolt"]
         printed_return_stmt = printer.printExpression(stmt.getReturnStmt().getExpression())
         self.assertEqual('0.001 * (milliVolt)', printed_return_stmt)
+
+
+coverage.stop()
+coverage.save()

@@ -61,36 +61,36 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
         """
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.isNumericLiteral():
-                return self.__typesPrinter.prettyPrint(_expr.getNumericLiteral())
+                return self.__typesPrinter.pretty_print(_expr.getNumericLiteral())
             elif _expr.isInfLiteral():
                 return self.__referenceConverter.convertConstant('inf')
             elif _expr.isString():
-                return self.__typesPrinter.prettyPrint(_expr.getString())
+                return self.__typesPrinter.pretty_print(_expr.getString())
             elif _expr.isBooleanTrue():
-                return self.__typesPrinter.prettyPrint(True)
+                return self.__typesPrinter.pretty_print(True)
             elif _expr.isBooleanFalse():
-                return self.__typesPrinter.prettyPrint(False)
+                return self.__typesPrinter.pretty_print(False)
             elif _expr.isVariable():
                 return self.__referenceConverter.convertNameReference(_expr.getVariable())
             elif _expr.isFunctionCall():
-                return self.printFunctionCall(_expr.getFunctionCall())
+                return self.print_function_call(_expr.getFunctionCall())
         elif isinstance(_expr, ASTExpression):
             if _expr.isUnaryOperator():
                 if _expr.getUnaryOperator().isUnaryPlus():
                     return '(' + self.__referenceConverter.convertUnaryOp('+') + \
-                           self.printExpression(_expr.getExpression()) + ')'
+                           self.print_expression(_expr.getExpression()) + ')'
                 elif _expr.getUnaryOperator().isUnaryMinus():
                     return '(' + self.__referenceConverter.convertUnaryOp('-') + \
-                           self.printExpression(_expr.getExpression()) + ')'
+                           self.print_expression(_expr.getExpression()) + ')'
                 elif _expr.getUnaryOperator().isUnaryTilde():
                     return '(' + self.__referenceConverter.convertUnaryOp('~') + \
-                           self.printExpression(_expr.getExpression()) + ')'
+                           self.print_expression(_expr.getExpression()) + ')'
             elif _expr.isEncapsulated():
-                return '(' + self.printExpression(_expr.getExpression()) + ')'
+                return '(' + self.print_expression(_expr.getExpression()) + ')'
             # logical not
             elif _expr.isLogicalNot():
                 return self.__referenceConverter.convertUnaryOp('not') + ' ' + \
-                       self.printExpression(_expr.getExpression())
+                       self.print_expression(_expr.getExpression())
             # compound expression with lhs + rhs
             elif _expr.isCompoundExpression():
                 # arithmetic op, i.e. +,-,*,/
@@ -98,38 +98,38 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
                         (_expr.getBinaryOperator().isTimesOp() or _expr.getBinaryOperator().isDivOp() or
                              _expr.getBinaryOperator().isMinusOp() or _expr.getBinaryOperator().isPlusOp() or
                              _expr.getBinaryOperator().isModuloOp()):
-                    return self.printExpression(_expr.getLhs()) + ' ' + \
+                    return self.print_expression(_expr.getLhs()) + ' ' + \
                            self.printArithmeticOperator(_expr.getBinaryOperator()) + ' ' + \
-                           self.printExpression(_expr.getRhs())
+                           self.print_expression(_expr.getRhs())
                 # pow op
                 elif isinstance(_expr.getBinaryOperator(),
                                 ASTArithmeticOperator) and _expr.getBinaryOperator().isPowOp():
-                    lhs = self.printExpression(_expr.getLhs())
+                    lhs = self.print_expression(_expr.getLhs())
                     pow = self.__referenceConverter.convertBinaryOp('**')
-                    rhs = self.printExpression(_expr.getRhs())
+                    rhs = self.print_expression(_expr.getRhs())
                     return pow % (lhs, rhs)
                 # bit operator
                 elif isinstance(_expr.getBinaryOperator(), ASTBitOperator):
-                    lhs = self.printExpression(_expr.getLhs())
+                    lhs = self.print_expression(_expr.getLhs())
                     bit = self.printBitOperator(_expr.getBinaryOperator())
-                    rhs = self.printExpression(_expr.getRhs())
+                    rhs = self.print_expression(_expr.getRhs())
                     return lhs + ' ' + bit + ' ' + rhs
                 # comparison operator
                 elif isinstance(_expr.getBinaryOperator(), ASTComparisonOperator):
-                    lhs = self.printExpression(_expr.getLhs())
+                    lhs = self.print_expression(_expr.getLhs())
                     comp = self.printComparisonOperator(_expr.getBinaryOperator())
-                    rhs = self.printExpression(_expr.getRhs())
+                    rhs = self.print_expression(_expr.getRhs())
                     return lhs + ' ' + comp + ' ' + rhs
                 elif isinstance(_expr.getBinaryOperator(), ASTLogicalOperator):
-                    lhs = self.printExpression(_expr.getLhs())
+                    lhs = self.print_expression(_expr.getLhs())
                     op = self.printLogicalOperator(_expr.getBinaryOperator())
-                    rhs = self.printExpression(_expr.getRhs())
+                    rhs = self.print_expression(_expr.getRhs())
                     return op % (lhs, rhs)
 
             elif _expr.isTernaryOperator():
-                condition = self.printExpression(_expr.getCondition())
-                ifTrue = self.printExpression(_expr.getIfTrue())
-                ifNot = self.printExpression(_expr.getIfNot())
+                condition = self.print_expression(_expr.getCondition())
+                ifTrue = self.print_expression(_expr.getIfTrue())
+                ifNot = self.print_expression(_expr.getIfNot())
                 return '(' + condition + ')?(' + ifTrue + '):(' + ifNot + ')'
         else:
             Logger.logMessage('Unsupported expression in expression pretty printer!', LOGGING_LEVEL.ERROR)

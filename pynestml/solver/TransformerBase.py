@@ -192,7 +192,7 @@ class TransformerBase(object):
                     if re.match(shape + "[\']*", variable.getCompleteName()) or re.match(shape + '__[\\d]+$',
                                                                                          variable.getCompleteName()):
                         spikesUpdates.append(ASTCreator.createAssignment(
-                            variable.getCompleteName() + " += " + buffer + " * " + printer.printExpression(
+                            variable.getCompleteName() + " += " + buffer + " * " + printer.print_expression(
                                 astDeclaration.getExpression())))
         for update in spikesUpdates:
             cls.addAssignmentToUpdateBlock(update, _neuron)
