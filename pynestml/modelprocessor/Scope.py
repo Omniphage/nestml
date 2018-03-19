@@ -62,6 +62,27 @@ class Scope(object):
         self.__sourcePosition = _sourcePosition
         return
 
+    @staticmethod
+    def make_global_scope(_neuron):
+        # type: (ASTNeuron) -> Scope
+        """Factory method. Returns scope for the given neuron with predifened elements already attatched"""
+        from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+        result = Scope(_scopeType=ScopeType.GLOBAL, _sourcePosition=_neuron.getSourcePosition())
+        Scope._add_predefined_elements(result)
+        return result
+
+    @staticmethod
+    def _add_predefined_elements(_scope):
+        # type: (Scope) -> None
+        from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
+        from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+        variables = PredefinedVariables.getVariables()
+        functions = PredefinedFunctions.getFunctionSymbols()
+        for symbol in variables.keys():
+            _scope.addSymbol(variables[symbol])
+        for symbol in functions.keys():
+            _scope.addSymbol(functions[symbol])
+
     def addSymbol(self, _symbol=None):
         """
         Adds the handed over symbol to the current scope.
@@ -405,6 +426,6 @@ class ScopeType(Enum):
         -The function scope, as embedded in the global scope.
         -The update scope, as embedded in the global scope.
     """
-    GLOBAL = 1
-    UPDATE = 2
-    FUNCTION = 3
+    GLOBAL = 1  # type: ScopeType
+    UPDATE = 2  # type: ScopeType
+    FUNCTION = 3  # type: ScopeType

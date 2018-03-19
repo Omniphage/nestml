@@ -93,16 +93,12 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
                           _message=message, _logLevel=LOGGING_LEVEL.INFO)
         if _neuron.getEquationsBlocks() is not None:
             self.make_implicit_odes_explicit(_neuron.getEquationsBlocks())
-        scope = Scope(_scopeType=ScopeType.GLOBAL, _sourcePosition=_neuron.getSourcePosition())
+        scope = Scope.make_global_scope(_neuron)
         _neuron.updateScope(scope)
         _neuron.getBody().updateScope(scope)
         # now first, we add all predefined elements to the scope
-        variables = PredefinedVariables.getVariables()
-        functions = PredefinedFunctions.getFunctionSymbols()
-        for symbol in variables.keys():
-            _neuron.getScope().addSymbol(variables[symbol])
-        for symbol in functions.keys():
-            _neuron.getScope().addSymbol(functions[symbol])
+
+
         return
 
     def end_visit_neuron(self, _neuron):
