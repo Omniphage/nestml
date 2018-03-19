@@ -1,3 +1,4 @@
+coverage
 numpy >= 1.8.2
 sympy >= 1.1.1
 antlr4-python3-runtime >= 4.7; python_version >= '3.0'

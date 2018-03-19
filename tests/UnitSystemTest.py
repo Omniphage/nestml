@@ -17,8 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
+
+import os
 import unittest
 
+from coverage import Coverage
 from typing import Dict, Union
 
 from pynestml.codegeneration.ExpressionsPrettyPrinter import ExpressionsPrettyPrinter
@@ -78,9 +82,7 @@ class UnitSystemTest(unittest.TestCase):
     """
     Test class for everything Unit related.
     """
-
-    test_model = None
-    statements = {}
+    coverage = None
 
     @classmethod
     def setUpClass(cls):
@@ -88,6 +90,26 @@ class UnitSystemTest(unittest.TestCase):
         Logger.setLoggingLevel(LOGGING_LEVEL.NO)
         cls.test_model = ModelParser.parse_model_from_string(TestModels.MagnitudeConversion.simple_assignment)
         cls.statements = StatementIndexingVisitor.visit_node(cls.test_model)
+        if os.environ['run_coverage'] == 'True':
+            cls.coverage = Coverage()
+            cls.coverage.start()
+            cls.coverage.set_option('run:include', ["*/ExpressionsPrettyPrinter.py"])
+
+    @classmethod
+    def tearDownClass(cls):
+        # type: () -> None
+        if os.environ['run_coverage'] == 'True':
+            cls.coverage.stop()
+            name, executable, excluded, missing, formatted_missing = cls.coverage.analysis2(
+                "../pynestml/codegeneration/ExpressionsPrettyPrinter.py")
+            total = len(executable) - len(excluded)
+            print 'total: ' + str(total)
+            executed = total - len(missing)
+            print 'executed: ' + str(executed)
+            percentage = executed / total
+            pretty_percentage = round(percentage * 100, 2)
+            threshold = 95.00
+            assert pretty_percentage > threshold, "Test coverage is %s. Target is %s" % (pretty_percentage, threshold)
 
     def test_expression_after_magnitude_conversion_in_direct_assignment(self):
         # type: () -> None
