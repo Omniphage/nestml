@@ -20,16 +20,8 @@
 import unittest
 
 from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
-from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType, VariableType
-
-PredefinedUnits.registerUnits()
-PredefinedTypes.registerTypes()
-PredefinedVariables.registerPredefinedVariables()
-PredefinedFunctions.registerPredefinedFunctions()
 
 
 class GSLNamesConverterTest(unittest.TestCase):
