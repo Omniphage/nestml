@@ -31,16 +31,14 @@ from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 
 
 # noinspection PyTypeChecker,PyMissingTypeHints
-class GSLReferenceConverterTest(unittest.TestCase):
+class GSLReferenceConverterTestConvertNameReference(unittest.TestCase):
     class_under_test = None
+    variable = None
 
     # noinspection PyPep8Naming
     def setUp(self):
         self.class_under_test = GSLReferenceConverter()
-
-    def test_init_upper_bound(self):
-        gsl_reference_converter = GSLReferenceConverter(True)
-        self.assertTrue(gsl_reference_converter._is_upper_bound)
+        self.variable = Mock(ASTVariable)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.UnitConverter')
     @patch('pynestml.codegeneration.GSLReferenceConverter.PredefinedUnits')
@@ -57,141 +55,146 @@ class GSLReferenceConverterTest(unittest.TestCase):
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_init_buffer(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        result = self.class_under_test.convert_name_reference(variable)
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.B_.' + _mock_gsl_names_converter.buffer_value(), result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_euler_constant(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
         _mock_gsl_names_converter.convert_to_cpp_name.return_value = 'e'
-        result = self.class_under_test.convert_name_reference(variable)
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('numerics::e', result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_local_variable(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = True
-        variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
-        result = self.class_under_test.convert_name_reference(variable)
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = True
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual(_mock_gsl_names_converter.convert_to_cpp_name.return_value, result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_function_variable(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = True
-        result = self.class_under_test.convert_name_reference(variable)
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = True
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual(_mock_gsl_names_converter.convert_to_cpp_name.return_value, result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_vector_variable(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
-        result = self.class_under_test.convert_name_reference(variable)
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.get_' + _mock_gsl_names_converter.convert_to_cpp_name.return_value + '()[i]', result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_regular_variable(self, _mock_gsl_names_converter):
-        variable = Mock(ASTVariable)
-        variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
-        variable.getScope.return_value.resolveToSymbol.return_value.hasVectorParameter.return_value = False
-        result = self.class_under_test.convert_name_reference(variable)
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
+        self.variable.getScope.return_value.resolveToSymbol.return_value.hasVectorParameter.return_value = False
+        result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.get_' + _mock_gsl_names_converter.convert_to_cpp_name.return_value + '()', result)
 
+
+# noinspection PyTypeChecker,PyMissingTypeHints
+class GSLReferenceConverterTestConvertFunctionCall(unittest.TestCase):
+    class_under_test = None
+    func = None
+
+    # noinspection PyPep8Naming
+    def setUp(self):
+        self.class_under_test = GSLReferenceConverter()
+        self.func = Mock(ASTFunction)
+
+    def test_init_upper_bound(self):
+        gsl_reference_converter = GSLReferenceConverter(True)
+        self.assertTrue(gsl_reference_converter._is_upper_bound)
+
     def test_convert_function_call_name_is_resolution(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = 'resolution'
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = 'resolution'
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('nest::Time::get_resolution().get_ms()', result)
 
     def test_convert_function_call_name_is_steps(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = 'steps'
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = 'steps'
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('nest::Time(nest::Time::ms((double) %s)).get_steps()', result)
 
     def test_convert_function_call_name_is_predefined_pow(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.POW
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.POW
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::pow(%s)', result)
 
     def test_convert_function_call_name_is_predefined_log(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.LOG
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.LOG
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::log(%s)', result)
 
     def test_convert_function_call_name_is_predefined_expm1(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.EXPM1
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.EXPM1
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('numerics::expm1(%s)', result)
 
     def test_convert_function_call_name_is_predefined_exp_upper_bound_true(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.EXP
+        self.func.getName.return_value = PredefinedFunctions.EXP
         self.class_under_test._is_upper_bound = True
-        result = self.class_under_test.convert_function_call(func)
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::exp(std::min(%s,' + str(self.class_under_test._maximal_exponent) + '))', result)
 
     def test_convert_function_call_name_is_predefined_exp_upper_bound_false(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.EXP
+        self.func.getName.return_value = PredefinedFunctions.EXP
         self.class_under_test._is_upper_bound = False
-        result = self.class_under_test.convert_function_call(func)
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::exp(%s)', result)
 
     def test_convert_function_call_name_is_predefined_max(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.MAX
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.MAX
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::max(%s)', result)
 
     def test_convert_function_call_name_is_predefined_bounded_max(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.BOUNDED_MAX
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.BOUNDED_MAX
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::max(%s)', result)
 
     def test_convert_function_call_name_is_predefined_min(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.MIN
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.MIN
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::min(%s)', result)
 
     def test_convert_function_call_name_is_predefined_bounded_min(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.BOUNDED_MIN
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.BOUNDED_MIN
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual('std::min(%s)', result)
 
     def test_convert_function_call_name_is_predefined_emit_spike(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = PredefinedFunctions.EMIT_SPIKE
-        result = self.class_under_test.convert_function_call(func)
+        self.func.getName.return_value = PredefinedFunctions.EMIT_SPIKE
+        result = self.class_under_test.convert_function_call(self.func)
         self.assertEqual(('set_spiketime(nest::Time::step(origin.get_steps()+lag+1));\n'
                           'nest::SpikeEvent se;\n'
                           'nest::kernel().event_delivery_manager.send(*this, se, lag)'), result)
 
     def test_convert_function_call_name_is_not_predefined(self):
-        func = Mock(ASTFunction)
-        func.getName.return_value = 'foo'
-        self.assertRaises(UnsupportedOperationException, self.class_under_test.convert_function_call, func)
+        self.func.getName.return_value = 'foo'
+        self.assertRaises(UnsupportedOperationException, self.class_under_test.convert_function_call, self.func)
+
+
+# noinspection PyTypeChecker,PyMissingTypeHints
+class GSLReferenceConverterTestRemaining(unittest.TestCase):
+    class_under_test = None
+
+    # noinspection PyPep8Naming
+    def setUp(self):
+        self.class_under_test = GSLReferenceConverter()
 
     def test_convert_constant(self):
         constant = 'foo'
