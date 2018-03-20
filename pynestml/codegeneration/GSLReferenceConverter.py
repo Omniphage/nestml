@@ -109,7 +109,7 @@ class GSLReferenceConverter(IReferenceConverter):
         # type: (ASTUnaryOperator) -> str
         return str(_unary_operator) + '(%s)'
 
-    # TODO: this clashes with convert methods for other operator types?
+    # TODO: this clashes with convert methods for other operator types! it should delegate to them!
     def convert_binary_op(self, _binary_operator):
         # type: (Union[ASTArithmeticOperator,ASTBitOperator,ASTComparisonOperator,ASTLogicalOperator]) -> str
         if isinstance(_binary_operator, ASTArithmeticOperator) and _binary_operator.isPowOp():

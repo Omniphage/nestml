@@ -38,6 +38,7 @@ class ExpressionsPrettyPrinterTest(unittest.TestCase):
 
     class_under_test = ExpressionsPrettyPrinter()
 
+    # TODO: Rework this with mocks
     @staticmethod
     def setup():
         # type: () -> None
