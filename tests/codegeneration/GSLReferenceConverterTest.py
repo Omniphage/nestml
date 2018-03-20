@@ -34,12 +34,13 @@ from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 class GSLReferenceConverterTest(unittest.TestCase):
     class_under_test = None
 
+    # noinspection PyPep8Naming
     def setUp(self):
         self.class_under_test = GSLReferenceConverter()
 
     def test_init_upper_bound(self):
-        gsl_reference_covnerter = GSLReferenceConverter(True)
-        self.assertTrue(gsl_reference_covnerter._is_upper_bound)
+        gsl_reference_converter = GSLReferenceConverter(True)
+        self.assertTrue(gsl_reference_converter._is_upper_bound)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.UnitConverter')
     @patch('pynestml.codegeneration.GSLReferenceConverter.PredefinedUnits')
@@ -112,89 +113,89 @@ class GSLReferenceConverterTest(unittest.TestCase):
         self.assertEqual('node.get_' + _mock_gsl_names_converter.convert_to_cpp_name.return_value + '()', result)
 
     def test_convert_function_call_name_is_resolution(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = 'resolution'
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = 'resolution'
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('nest::Time::get_resolution().get_ms()', result)
 
     def test_convert_function_call_name_is_steps(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = 'steps'
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = 'steps'
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('nest::Time(nest::Time::ms((double) %s)).get_steps()', result)
 
     def test_convert_function_call_name_is_predefined_pow(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.POW
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.POW
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::pow(%s)', result)
 
     def test_convert_function_call_name_is_predefined_log(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.LOG
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.LOG
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::log(%s)', result)
 
     def test_convert_function_call_name_is_predefined_expm1(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.EXPM1
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.EXPM1
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('numerics::expm1(%s)', result)
 
     def test_convert_function_call_name_is_predefined_exp_upper_bound_true(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.EXP
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.EXP
         self.class_under_test._is_upper_bound = True
-        result = self.class_under_test.convert_function_call(function)
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::exp(std::min(%s,' + str(self.class_under_test._maximal_exponent) + '))', result)
 
     def test_convert_function_call_name_is_predefined_exp_upper_bound_false(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.EXP
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.EXP
         self.class_under_test._is_upper_bound = False
-        result = self.class_under_test.convert_function_call(function)
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::exp(%s)', result)
 
     def test_convert_function_call_name_is_predefined_max(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.MAX
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.MAX
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::max(%s)', result)
 
     def test_convert_function_call_name_is_predefined_bounded_max(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.BOUNDED_MAX
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.BOUNDED_MAX
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::max(%s)', result)
 
     def test_convert_function_call_name_is_predefined_min(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.MIN
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.MIN
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::min(%s)', result)
 
     def test_convert_function_call_name_is_predefined_bounded_min(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.BOUNDED_MIN
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.BOUNDED_MIN
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual('std::min(%s)', result)
 
     def test_convert_function_call_name_is_predefined_emit_spike(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = PredefinedFunctions.EMIT_SPIKE
-        result = self.class_under_test.convert_function_call(function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = PredefinedFunctions.EMIT_SPIKE
+        result = self.class_under_test.convert_function_call(func)
         self.assertEqual(('set_spiketime(nest::Time::step(origin.get_steps()+lag+1));\n'
                           'nest::SpikeEvent se;\n'
                           'nest::kernel().event_delivery_manager.send(*this, se, lag)'), result)
 
     def test_convert_function_call_name_is_not_predefined(self):
-        function = Mock(ASTFunction)
-        function.getName.return_value = 'foo'
-        self.assertRaises(UnsupportedOperationException, self.class_under_test.convert_function_call, function)
+        func = Mock(ASTFunction)
+        func.getName.return_value = 'foo'
+        self.assertRaises(UnsupportedOperationException, self.class_under_test.convert_function_call, func)
 
     def test_convert_constant(self):
-        function_name = 'foo'
-        result = self.class_under_test.convert_constant(function_name)
+        constant = 'foo'
+        result = self.class_under_test.convert_constant(constant)
         self.assertEqual('foo', result)
 
     def test_convert_unary_op(self):
@@ -250,6 +251,6 @@ class GSLReferenceConverterTest(unittest.TestCase):
         self.assertEqual(_mock_nest_reference_converter.convert_ternary_operator(), result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.NESTReferenceConverter')
-    def test_convert_arithemetic_op(self, _mock_nest_reference_converter):
+    def test_convert_arithmetic_op(self, _mock_nest_reference_converter):
         result = self.class_under_test.convert_arithmetic_operator(Mock())
         self.assertEqual(_mock_nest_reference_converter.convert_arithmetic_operator(), result)
