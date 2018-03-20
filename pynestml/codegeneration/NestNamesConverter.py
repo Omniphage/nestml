@@ -84,6 +84,7 @@ class NestNamesConverter(object):
 
     @classmethod
     def convertToCPPName(cls, _variableName=None):
+        # type: (str) -> str
         """
         Converts a handed over name to the corresponding nest / c++ naming guideline.
         In concrete terms:

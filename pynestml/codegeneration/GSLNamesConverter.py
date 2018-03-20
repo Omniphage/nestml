@@ -17,8 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.VariableSymbol import VariableSymbol
 from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
+from pynestml.modelprocessor.VariableSymbol import VariableSymbol
 
 
 class GSLNamesConverter(object):
@@ -27,87 +27,40 @@ class GSLNamesConverter(object):
     """
 
     @classmethod
-    def arrayIndex(cls, _symbol=None):
-        """
-        Transforms the haded over symbol to a GSL processable format.
-        :param _symbol: a single variable symbol
-        :type _symbol: VariableSymbol
-        :return: the corresponding string format
-        :rtype: str
-        """
-        assert (_symbol is not None and isinstance(_symbol, VariableSymbol)), \
-            '(PyNestML.CodeGeneration.GSLNamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
-                _symbol)
-        return 'State_::' + NestNamesConverter.convertToCPPName(_symbol.getSymbolName())
+    def array_index(cls, _variable_symbol):
+        # type: (VariableSymbol) -> str
+        """Transforms the haded over symbol to a GSL processable format."""
+        return 'State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName())
 
     @classmethod
-    def name(cls, _symbol=None):
-        """
-        Transforms the haded over symbol to a GSL processable format.
-        :param _symbol: a single variable symbol
-        :type _symbol: VariableSymbol
-        :return: the corresponding string format
-        :rtype: str
-        """
-        assert (_symbol is not None and isinstance(_symbol, VariableSymbol)), \
-            '(PyNestML.CodeGeneration.GSLNamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
-                _symbol)
-        if _symbol.isInitValues() and not _symbol.isFunction():
-            return 'ode_state[State_::' + NestNamesConverter.convertToCPPName(_symbol.getSymbolName()) + ']'
+    def name(cls, _variable_symbol):
+        # type: (VariableSymbol) -> str
+        """Transforms the haded over symbol to a GSL processable format."""
+        if _variable_symbol.isInitValues() and not _variable_symbol.isFunction():
+            return 'ode_state[State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName()) + ']'
         else:
-            return NestNamesConverter.name(_symbol)
+            return NestNamesConverter.name(_variable_symbol)
 
     @classmethod
-    def getter(cls, _variableSymbol=None):
-        """
-        Converts for a handed over symbol the corresponding name of the getter to a gsl processable format.
-        :param _variableSymbol: a single variable symbol.
-        :type _variableSymbol: VariableSymbol
-        :return: the corresponding representation as a string
-        :rtype: str
-        """
-        assert (_variableSymbol is not None and isinstance(_variableSymbol, VariableSymbol)), \
-            '(PyNestML.CodeGeneration.NamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
-                _variableSymbol)
-        return NestNamesConverter.getter(_variableSymbol)
+    def getter(cls, _variable_symbol):
+        # type: (VariableSymbol) -> str
+        """Converts for a handed over symbol the corresponding name of the getter to a gsl processable format."""
+        return NestNamesConverter.getter(_variable_symbol)
 
     @classmethod
-    def setter(cls, _variableSymbol=None):
-        """
-        Converts for a handed over symbol the corresponding name of the setter to a gsl processable format.
-        :param _variableSymbol: a single variable symbol.
-        :type _variableSymbol: VariableSymbol
-        :return: the corresponding representation as a string
-        :rtype: str
-        """
-        assert (_variableSymbol is not None and isinstance(_variableSymbol, VariableSymbol)), \
-            '(PyNestML.CodeGeneration.NamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
-                _variableSymbol)
-        return NestNamesConverter.setter(_variableSymbol)
+    def setter(cls, _variable_symbol):
+        # type: (VariableSymbol) -> str
+        """Converts for a handed over symbol the corresponding name of the setter to a gsl processable format."""
+        return NestNamesConverter.setter(_variable_symbol)
 
     @classmethod
-    def bufferValue(cls, _variableSymbol=None):
-        """
-        Converts for a handed over symbol the corresponding name of the buffer to a gsl processable format.
-        :param _variableSymbol: a single variable symbol.
-        :type _variableSymbol: VariableSymbol
-        :return: the corresponding representation as a string
-        :rtype: str
-        """
-        assert (_variableSymbol is not None and isinstance(_variableSymbol, VariableSymbol)), \
-            '(PyNestML.CodeGeneration.NamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
-                _variableSymbol)
-        return NestNamesConverter.bufferValue(_variableSymbol)
+    def buffer_value(cls, _variable_symbol):
+        # type: (VariableSymbol) -> str
+        """Converts for a handed over symbol the corresponding name of the buffer to a gsl processable format."""
+        return NestNamesConverter.bufferValue(_variable_symbol)
 
     @classmethod
-    def convertToCPPName(cls, _variableName=None):
-        """
-        Converts a handed over name to the corresponding gsl / c++ naming guideline.
-        In concrete terms:
-            Converts names of the form g_in'' to a compilable C++ identifier: __DDX_g_in
-        :param _variableName: a single name.
-        :type _variableName: str
-        :return: the corresponding transformed name.
-        :rtype: str
-        """
-        return NestNamesConverter.convertToCPPName(_variableName)
+    def convert_to_cpp_name(cls, _variable_name):
+        # type: (str) -> str
+        """Converts a handed over name to the corresponding gsl / c++ naming guideline."""
+        return NestNamesConverter.convertToCPPName(_variable_name)

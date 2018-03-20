@@ -128,8 +128,6 @@ class ExpressionsPrettyPrinter(object):
 class TypesPrinter(object):
     def pretty_print(self, _element):
         # type: (Union[bool,int,str]) -> str
-        assert (_element is not None), \
-            '(PyNestML.CodeGeneration.PrettyPrinter) No element provided (%s)!' % _element
         if isinstance(_element, bool) and _element:
             return 'true'
         elif isinstance(_element, bool) and not _element:
