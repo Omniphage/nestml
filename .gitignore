@@ -4,6 +4,7 @@ target/
 .mypy_cache/
 build/
 buildNest/
+cover/
 
 __*
 
