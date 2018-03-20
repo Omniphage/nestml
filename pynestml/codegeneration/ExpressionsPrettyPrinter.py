@@ -62,11 +62,11 @@ class ExpressionsPrettyPrinter(object):
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.hasUnit():
                 return self._types_printer.pretty_print(_expr.getNumericLiteral()) + '*' + \
-                       self._reference_converter.convertNameReference(_expr.getVariable())
+                       self._reference_converter.convert_name_reference(_expr.getVariable())
             elif _expr.isNumericLiteral():
                 return self._types_printer.pretty_print(_expr.getNumericLiteral())
             elif _expr.isInfLiteral():
-                return self._reference_converter.convertConstant('inf')
+                return self._reference_converter.convert_constant('inf')
             elif _expr.isString():
                 return self._types_printer.pretty_print(_expr.getString())
             elif _expr.isBooleanTrue():
@@ -74,34 +74,34 @@ class ExpressionsPrettyPrinter(object):
             elif _expr.isBooleanFalse():
                 return self._types_printer.pretty_print(False)
             elif _expr.isVariable():
-                return self._reference_converter.convertNameReference(_expr.getVariable())
+                return self._reference_converter.convert_name_reference(_expr.getVariable())
             elif _expr.isFunctionCall():
                 return self.print_function_call(_expr.getFunctionCall())
         elif isinstance(_expr, ASTExpression):
             # a unary operator
             if _expr.isUnaryOperator():
-                op = self._reference_converter.convertUnaryOp(_expr.getUnaryOperator())
+                op = self._reference_converter.convert_unary_op(_expr.getUnaryOperator())
                 rhs = self.print_expression(_expr.getExpression())
                 return op % rhs
             # encapsulated in brackets
             elif _expr.isEncapsulated():
-                return self._reference_converter.convertEncapsulated() % self.print_expression(_expr.getExpression())
+                return self._reference_converter.convert_encapsulated() % self.print_expression(_expr.getExpression())
             # logical not
             elif _expr.isLogicalNot():
-                op = self._reference_converter.convertLogicalNot()
+                op = self._reference_converter.convert_logical_not()
                 rhs = self.print_expression(_expr.getExpression())
                 return op % rhs
             # compound expression with lhs + rhs
             elif _expr.isCompoundExpression():
                 lhs = self.print_expression(_expr.getLhs())
-                op = self._reference_converter.convertBinaryOp(_expr.getBinaryOperator())
+                op = self._reference_converter.convert_binary_op(_expr.getBinaryOperator())
                 rhs = self.print_expression(_expr.getRhs())
                 return op % (lhs, rhs)
             elif _expr.isTernaryOperator():
                 condition = self.print_expression(_expr.getCondition())
                 if_true = self.print_expression(_expr.getIfTrue())
                 if_not = self.print_expression(_expr.getIfNot())
-                return self._reference_converter.convertTernaryOperator() % (condition, if_true, if_not)
+                return self._reference_converter.convert_ternary_operator() % (condition, if_true, if_not)
         code, message = Messages.get_unsupported_expression_in_pretty_printer()
         Logger.logMessage(_code=code, _message=message, _errorPosition=_expr.getSourcePosition(),
                           _logLevel=LOGGING_LEVEL.ERROR)
@@ -109,7 +109,7 @@ class ExpressionsPrettyPrinter(object):
 
     def print_function_call(self, _function_call):
         # type: (ASTFunctionCall) -> str
-        function_name = self._reference_converter.convertFunctionCall(_function_call)
+        function_name = self._reference_converter.convert_function_call(_function_call)
         if ASTUtils.needsArguments(_function_call):
             return function_name % self.print_function_call_arguments(_function_call)
         else:

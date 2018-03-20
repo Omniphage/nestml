@@ -29,13 +29,11 @@ class GSLNamesConverter(object):
     @classmethod
     def array_index(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        """Transforms the haded over symbol to a GSL processable format."""
         return 'State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName())
 
     @classmethod
     def name(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        """Transforms the haded over symbol to a GSL processable format."""
         if _variable_symbol.isInitValues() and not _variable_symbol.isFunction():
             return 'ode_state[State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName()) + ']'
         else:
@@ -44,23 +42,19 @@ class GSLNamesConverter(object):
     @classmethod
     def getter(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        """Converts for a handed over symbol the corresponding name of the getter to a gsl processable format."""
         return NestNamesConverter.getter(_variable_symbol)
 
     @classmethod
     def setter(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        """Converts for a handed over symbol the corresponding name of the setter to a gsl processable format."""
         return NestNamesConverter.setter(_variable_symbol)
 
     @classmethod
     def buffer_value(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        """Converts for a handed over symbol the corresponding name of the buffer to a gsl processable format."""
         return NestNamesConverter.bufferValue(_variable_symbol)
 
     @classmethod
     def convert_to_cpp_name(cls, _variable_name):
         # type: (str) -> str
-        """Converts a handed over name to the corresponding gsl / c++ naming guideline."""
         return NestNamesConverter.convertToCPPName(_variable_name)

@@ -38,7 +38,7 @@ class ExpressionsPrettyPrinterTest(unittest.TestCase):
 
     printer = ExpressionsPrettyPrinter()
 
-    def setUp(self):
+    def setup(self):
         # type: () -> None
         Logger.getLog().clear()
         Logger.initLogger(LOGGING_LEVEL.ERROR)

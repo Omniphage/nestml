@@ -27,7 +27,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
     whenever comments have to be printed, in order to preserve the initial PyNestML syntax.
     """
 
-    def convertUnaryOp(self, _unaryOperator):
+    def convert_unary_op(self, _unaryOperator):
         """
         Returns the same string.
         :param _unaryOperator: a single unary operator string.
@@ -37,7 +37,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
         """
         return str(_unaryOperator) + '%s'
 
-    def convertNameReference(self, _astVariable):
+    def convert_name_reference(self, _astVariable):
         """
         Returns the same string
         :param _astVariable: a single variable
@@ -51,7 +51,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
                 _astVariable)
         return _astVariable.getCompleteName()
 
-    def convertFunctionCall(self, _astFunctionCall):
+    def convert_function_call(self, _astFunctionCall):
         """
         Returns the same function call back.
         :param _astFunctionCall: a function call
@@ -71,7 +71,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
             result += '()'
         return result
 
-    def convertBinaryOp(self, _binaryOperator):
+    def convert_binary_op(self, _binaryOperator):
         """
         Returns the same binary operator back.
         :param _binaryOperator:  a single binary operator
@@ -81,7 +81,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
         """
         return '%s' + str(_binaryOperator) + '%s'
 
-    def convertConstant(self, _constantName):
+    def convert_constant(self, _constantName):
         """
         Returns the same string back.
         :param _constantName: a constant name
@@ -91,7 +91,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
         """
         return _constantName
 
-    def convertTernaryOperator(self):
+    def convert_ternary_operator(self):
         """
         Converts the ternary operator to its initial shape.
         :return: a string representation
@@ -99,20 +99,20 @@ class IdempotentReferenceConverter(IReferenceConverter):
         """
         return '(' + '%s' + ')?(' + '%s' + '):(' + '%s' + ')'
 
-    def convertLogicalOperator(self, _op):
+    def convert_logical_operator(self, _op):
         return str(_op)
 
-    def convertArithmeticOperator(self, _op):
+    def convert_arithmetic_operator(self, _op):
         return str(_op)
 
-    def convertEncapsulated(self):
+    def convert_encapsulated(self):
         return '(%s)'
 
-    def convertComparisonOperator(self, _op):
+    def convert_comparison_operator(self, _op):
         return str(_op)
 
-    def convertLogicalNot(self):
+    def convert_logical_not(self):
         return 'not %s'
 
-    def convertBitOperator(self, _op):
+    def convert_bit_operator(self, _op):
         return str(_op)

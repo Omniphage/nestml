@@ -63,7 +63,7 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
             if _expr.isNumericLiteral():
                 return self.__typesPrinter.pretty_print(_expr.getNumericLiteral())
             elif _expr.isInfLiteral():
-                return self.__referenceConverter.convertConstant('inf')
+                return self.__referenceConverter.convert_constant('inf')
             elif _expr.isString():
                 return self.__typesPrinter.pretty_print(_expr.getString())
             elif _expr.isBooleanTrue():
@@ -71,25 +71,25 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
             elif _expr.isBooleanFalse():
                 return self.__typesPrinter.pretty_print(False)
             elif _expr.isVariable():
-                return self.__referenceConverter.convertNameReference(_expr.getVariable())
+                return self.__referenceConverter.convert_name_reference(_expr.getVariable())
             elif _expr.isFunctionCall():
                 return self.print_function_call(_expr.getFunctionCall())
         elif isinstance(_expr, ASTExpression):
             if _expr.isUnaryOperator():
                 if _expr.getUnaryOperator().isUnaryPlus():
-                    return '(' + self.__referenceConverter.convertUnaryOp('+') + \
+                    return '(' + self.__referenceConverter.convert_unary_op('+') + \
                            self.print_expression(_expr.getExpression()) + ')'
                 elif _expr.getUnaryOperator().isUnaryMinus():
-                    return '(' + self.__referenceConverter.convertUnaryOp('-') + \
+                    return '(' + self.__referenceConverter.convert_unary_op('-') + \
                            self.print_expression(_expr.getExpression()) + ')'
                 elif _expr.getUnaryOperator().isUnaryTilde():
-                    return '(' + self.__referenceConverter.convertUnaryOp('~') + \
+                    return '(' + self.__referenceConverter.convert_unary_op('~') + \
                            self.print_expression(_expr.getExpression()) + ')'
             elif _expr.isEncapsulated():
                 return '(' + self.print_expression(_expr.getExpression()) + ')'
             # logical not
             elif _expr.isLogicalNot():
-                return self.__referenceConverter.convertUnaryOp('not') + ' ' + \
+                return self.__referenceConverter.convert_unary_op('not') + ' ' + \
                        self.print_expression(_expr.getExpression())
             # compound expression with lhs + rhs
             elif _expr.isCompoundExpression():
@@ -105,7 +105,7 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
                 elif isinstance(_expr.getBinaryOperator(),
                                 ASTArithmeticOperator) and _expr.getBinaryOperator().isPowOp():
                     lhs = self.print_expression(_expr.getLhs())
-                    pow = self.__referenceConverter.convertBinaryOp('**')
+                    pow = self.__referenceConverter.convert_binary_op('**')
                     rhs = self.print_expression(_expr.getRhs())
                     return pow % (lhs, rhs)
                 # bit operator

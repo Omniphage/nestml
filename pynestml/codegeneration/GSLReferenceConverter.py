@@ -17,17 +17,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.codegeneration.IReferenceConverter import IReferenceConverter
 from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
+from pynestml.codegeneration.IReferenceConverter import IReferenceConverter
 from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
 from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
 from pynestml.codegeneration.UnitConverter import UnitConverter
-from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.modelprocessor.ASTUnaryOperator import ASTUnaryOperator
 from pynestml.modelprocessor.ASTVariable import ASTVariable
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
+from pynestml.modelprocessor.Symbol import SymbolKind
 
 
 class GSLReferenceConverter(IReferenceConverter):
@@ -39,28 +40,13 @@ class GSLReferenceConverter(IReferenceConverter):
     __maximalExponent = 10.0
 
     def __init__(self, _isUpperBound=False):
-        """
-        Standard constructor.
-        :param _isUpperBound: Indicates whether an upper bound for the exponent shall be used.
-        :type _isUpperBound: bool
-        """
-        assert (_isUpperBound is not None and isinstance(_isUpperBound, bool)), \
-            '(PyNestML.CodeGeneration.GSLReferenceConverter) No or wrong type of is-upper-bound' \
-            ' parameter provided (%s)!' % type(_isUpperBound)
+        # type: (bool) -> None
+        """:param _isUpperBound: Indicates whether an upper bound for the exponent shall be used."""
         self.__isUpperBound = _isUpperBound
         return
 
-    def convertNameReference(self, _astVariable):
-        """
-        Converts a single name reference to a gsl processable format.
-        :param _astVariable: a single variable
-        :type _astVariable: ASTVariable
-        :return: a gsl processable format of the variable
-        :rtype: str
-        """
-        assert (_astVariable is not None and isinstance(_astVariable, ASTVariable)), \
-            '(PyNestML.CodeGeneration.GSLReferenceConverter) No or wrong type of variable provided (%s)!' % type(
-                _astVariable)
+    def convert_name_reference(self, _astVariable):
+        # type: (ASTVariable) -> str
         variableName = NestNamesConverter.convertToCPPName(_astVariable.getName())
         symbol = _astVariable.getScope().resolveToSymbol(_astVariable.getCompleteName(), SymbolKind.VARIABLE)
 
@@ -80,17 +66,8 @@ class GSLReferenceConverter(IReferenceConverter):
         else:
             return 'node.get_' + variableName + '()'
 
-    def convertFunctionCall(self, _astFunctionCall):
-        """
-        Converts a single function call to a gsl processable format.
-        :param _astFunctionCall: a single function call
-        :type _astFunctionCall: ASTFunctionCall
-        :return: a string representation
-        :rtype: str
-        """
-        assert (_astFunctionCall is not None and isinstance(_astFunctionCall, ASTFunctionCall)), \
-            '(PyNestML.CodeGeneration.GSLReferenceConverter) No or wrong type of function call provided (%s)!' \
-            % type(_astFunctionCall)
+    def convert_function_call(self, _astFunctionCall):
+        # type: (ASTFunctionCall) -> str
         functionName = _astFunctionCall.getName()
         if functionName == 'resolution':
             return 'nest::Time::get_resolution().get_ms()'
@@ -117,34 +94,15 @@ class GSLReferenceConverter(IReferenceConverter):
                    'nest::kernel().event_delivery_manager.send(*this, se, lag)'
         raise UnsupportedOperationException('Cannot map the function: "' + functionName + '".')
 
-    def convertConstant(self, _constantName):
-        """
-        No modifications to the constant required.
-        :param _constantName: a single constant.
-        :type _constantName: str
-        :return: the same constant
-        :rtype: str
-        """
+    def convert_constant(self, _constantName):
+        # type: (str) -> str
         return _constantName
 
-    def convertUnaryOp(self, _unaryOperator):
-        """
-        No modifications to the operator required.
-        :param _unaryOperator: a string of a unary operator.
-        :type _unaryOperator: str
-        :return: the same operator
-        :rtype: str
-        """
+    def convert_unary_op(self, _unaryOperator):
+        # type: (ASTUnaryOperator) -> str
         return str(_unaryOperator) + '(%s)'
 
-    def convertBinaryOp(self, _binaryOperator):
-        """
-        Converts a singe binary operator. Here, we have only to regard the pow operator in a special manner.
-        :param _binaryOperator: a binary operator in string representation.
-        :type _binaryOperator:  str
-        :return: a string representing the included binary operator.
-        :rtype: str
-        """
+    def convert_binary_op(self, _binaryOperator):
         from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
         from pynestml.modelprocessor.ASTBitOperator import ASTBitOperator
         from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
@@ -160,30 +118,27 @@ class GSLReferenceConverter(IReferenceConverter):
         else:
             return '%s' + str(_binaryOperator) + '%s'
 
-    def convertLogicalNot(self):
-        return NESTReferenceConverter.convertLogicalNot()
+    def convert_logical_not(self):
+        return NESTReferenceConverter.convert_logical_not()
 
-    def convertLogicalOperator(self, _op):
-        return NESTReferenceConverter.convertLogicalOperator(_op)
+    def convert_logical_operator(self, _op):
+        return NESTReferenceConverter.convert_logical_operator(_op)
 
-    def convertComparisonOperator(self, _op):
-        return NESTReferenceConverter.convertComparisonOperator(_op)
+    def convert_comparison_operator(self, _op):
+        return NESTReferenceConverter.convert_comparison_operator(_op)
 
-    def convertBitOperator(self, _op):
-        return NESTReferenceConverter.convertBitOperator(_op)
+    def convert_bit_operator(self, _op):
+        return NESTReferenceConverter.convert_bit_operator(_op)
 
-    def convertEncapsulated(self):
-        return NESTReferenceConverter.convertEncapsulated()
+    def convert_encapsulated(self):
+        return NESTReferenceConverter.convert_encapsulated()
 
-    def convertTernaryOperator(self):
-        return NESTReferenceConverter.convertTernaryOperator()
+    def convert_ternary_operator(self):
+        return NESTReferenceConverter.convert_ternary_operator()
 
-    def convertArithmeticOperator(self, _op):
-        return NESTReferenceConverter.convertArithmeticOperator(_op)
+    def convert_arithmetic_operator(self, _op):
+        return NESTReferenceConverter.convert_arithmetic_operator(_op)
 
 
 class UnsupportedOperationException(Exception):
-    """
-    This exception is thrown whenever a operator can not be identified.
-    """
     pass

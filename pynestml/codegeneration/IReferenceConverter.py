@@ -18,7 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from abc import ABCMeta, abstractmethod
+
+from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
+from pynestml.modelprocessor.ASTBitOperator import ASTBitOperator
+from pynestml.modelprocessor.ASTComparisonOperator import ASTComparisonOperator
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
+from pynestml.modelprocessor.ASTLogicalOperator import ASTLogicalOperator
+from pynestml.modelprocessor.ASTUnaryOperator import ASTUnaryOperator
+from pynestml.modelprocessor.ASTVariable import ASTVariable
 
 
 class IReferenceConverter(object):
@@ -30,49 +37,61 @@ class IReferenceConverter(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def convertBinaryOp(self, _binaryOperator):
+    def convert_binary_op(self, _binary_operator):
+        # type: (str) -> str
         pass
 
     @abstractmethod
-    def convertFunctionCall(self, _astFunctionCall):
+    def convert_function_call(self, _ast_function_call):
+        # type: (ASTFunctionCall) -> str
         pass
 
     @abstractmethod
-    def convertNameReference(self, _astVariable):
+    def convert_name_reference(self, _ast_variable):
+        # type: (ASTVariable) -> str
         pass
 
     @abstractmethod
-    def convertConstant(self, _constantName):
+    def convert_constant(self, _constant_name):
+        # type: (str) -> str
         pass
 
     @abstractmethod
-    def convertUnaryOp(self, _unaryOperator):
+    def convert_unary_op(self, _unary_operator):
+        # type: (ASTUnaryOperator) -> str
         pass
 
     @abstractmethod
-    def convertEncapsulated(self):
+    def convert_encapsulated(self):
+        # type: () -> str
         pass
 
     @abstractmethod
-    def convertLogicalNot(self):
+    def convert_logical_not(self):
+        # type: () -> str
         pass
 
     @abstractmethod
-    def convertArithmeticOperator(self, _op):
+    def convert_arithmetic_operator(self, _op):
+        # type: (ASTArithmeticOperator) -> str
         pass
 
     @abstractmethod
-    def convertBitOperator(self, _op):
+    def convert_bit_operator(self, _op):
+        # type: (ASTBitOperator) -> str
         pass
 
     @abstractmethod
-    def convertComparisonOperator(self, _op):
+    def convert_comparison_operator(self, _op):
+        # type: (ASTComparisonOperator) -> str
         pass
 
     @abstractmethod
-    def convertLogicalOperator(self, _op):
+    def convert_logical_operator(self, _op):
+        # type: (ASTLogicalOperator) -> str
         pass
 
     @abstractmethod
-    def convertTernaryOperator(self):
+    def convert_ternary_operator(self):
+        # type: () -> str
         pass
