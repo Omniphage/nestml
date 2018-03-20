@@ -39,8 +39,8 @@ class ExpressionsPrettyPrinterTest(unittest.TestCase):
     class_under_test = ExpressionsPrettyPrinter()
 
     # TODO: Rework this with mocks
-    @staticmethod
-    def setup():
+    # noinspection PyPep8Naming
+    def setUp(self):
         # type: () -> None
         Logger.getLog().clear()
         Logger.initLogger(LOGGING_LEVEL.ERROR)
