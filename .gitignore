@@ -24,3 +24,4 @@ pynestml/grammars/antlr-4.7-complete.jar
 *.gdf
 *~
 *.iml
+.coverage
