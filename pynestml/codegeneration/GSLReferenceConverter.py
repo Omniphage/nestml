@@ -21,7 +21,6 @@ from typing import Union
 
 from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
 from pynestml.codegeneration.IReferenceConverter import IReferenceConverter
-from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
 from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
 from pynestml.codegeneration.UnitConverter import UnitConverter
 from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
@@ -51,9 +50,10 @@ class GSLReferenceConverter(IReferenceConverter):
         self._is_upper_bound = _is_upper_bound
         return
 
+    #TODO: Restructure this so the giant conditional goes away
     def convert_name_reference(self, _ast_variable):
         # type: (ASTVariable) -> str
-        variable_name = NestNamesConverter.convertToCPPName(_ast_variable.getName())
+        variable_name = GSLNamesConverter.convert_to_cpp_name(_ast_variable.getName())
         symbol = _ast_variable.getScope().resolveToSymbol(_ast_variable.getCompleteName(), SymbolKind.VARIABLE)
 
         if PredefinedUnits.isUnit(_ast_variable.getCompleteName()):
@@ -62,7 +62,7 @@ class GSLReferenceConverter(IReferenceConverter):
         if symbol.isInitValues():
             return GSLNamesConverter.name(symbol)
         elif symbol.isBuffer():
-            return 'node.B_.' + NestNamesConverter.bufferValue(symbol)
+            return 'node.B_.' + GSLNamesConverter.buffer_value(symbol)
         elif variable_name == PredefinedVariables.E_CONSTANT:
             return 'numerics::e'
         elif symbol.isLocal() or symbol.isFunction():
@@ -72,6 +72,7 @@ class GSLReferenceConverter(IReferenceConverter):
         else:
             return 'node.get_' + variable_name + '()'
 
+    # TODO: Restructure this so the giant conditional goes away
     def convert_function_call(self, _ast_function_call):
         # type: (ASTFunctionCall) -> str
         function_name = _ast_function_call.getName()
@@ -108,6 +109,7 @@ class GSLReferenceConverter(IReferenceConverter):
         # type: (ASTUnaryOperator) -> str
         return str(_unary_operator) + '(%s)'
 
+    # TODO: this clashes with convert methods for other operator types?
     def convert_binary_op(self, _binary_operator):
         # type: (Union[ASTArithmeticOperator,ASTBitOperator,ASTComparisonOperator,ASTLogicalOperator]) -> str
         if isinstance(_binary_operator, ASTArithmeticOperator) and _binary_operator.isPowOp():

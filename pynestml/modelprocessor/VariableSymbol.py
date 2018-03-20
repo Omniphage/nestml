@@ -18,11 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from copy import copy
+from enum import Enum
 
-from pynestml.modelprocessor.Symbol import Symbol
 from pynestml.modelprocessor.ASTExpression import ASTExpression
 from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
-from enum import Enum
+from pynestml.modelprocessor.Symbol import Symbol
 
 
 class VariableSymbol(Symbol):
@@ -54,9 +54,9 @@ class VariableSymbol(Symbol):
     __initialValue = None
     __variableType = None
 
-    def __init__(self, _referenced_object=None, _scope=None, _name=None, _blockType=None, _vectorParameter=None,
+    def __init__(self, _blockType, _typeSymbol, _referenced_object=None, _scope=None, _name=None, _vectorParameter=None,
                  _declaringExpression=None, _isPredefined=False, _isFunction=False, _isRecordable=False,
-                 _typeSymbol=None, _initialValue=None, _variableType=None):
+                 _initialValue=None, _variableType=None):
         """
         Standard constructor.
         :param _referenced_object: a reference to the first element where this type has been used/defined
@@ -494,8 +494,8 @@ class VariableSymbol(Symbol):
         # in the last part, delete the new line if it is the last comment, otherwise there is an ungly gap
         # between the comment and the element
         for comment in self.getComment():
-            ret += (_prefix if _prefix is not None else '') + comment +\
-                   ('\n' if self.getComment().index(comment) < len(self.getComment())-1 else '')
+            ret += (_prefix if _prefix is not None else '') + comment + \
+                   ('\n' if self.getComment().index(comment) < len(self.getComment()) - 1 else '')
         return ret
 
     def containsSumCall(self):
@@ -510,8 +510,8 @@ class VariableSymbol(Symbol):
         else:
             for func in self.getDeclaringExpression().getFunctionCalls():
                 if func.getName() == PredefinedFunctions.CONVOLVE or \
-                                func.getName() == PredefinedFunctions.CURR_SUM or \
-                                func.getName() == PredefinedFunctions.COND_SUM:
+                        func.getName() == PredefinedFunctions.CURR_SUM or \
+                        func.getName() == PredefinedFunctions.COND_SUM:
                     return True
         return False
 

@@ -34,6 +34,7 @@ from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTOdeShape import ASTOdeShape
 from pynestml.modelprocessor.ASTSmallStmt import ASTSmallStmt
 from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
+from pynestml.modelprocessor.ASTVariable import ASTVariable
 from pynestml.modelprocessor.SymbolTable import SymbolTable
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
 from pynestml.utils.Messages import Messages
@@ -126,5 +127,13 @@ class ModelParser(object):
         # type: (str) -> ASTAssignment
         builder, parser = cls._parse_input_stream(InputStream(_assignment))
         ret = builder.visit(parser.assignment())
+        cls.set_source_positions(ret)
+        return ret
+
+    @classmethod
+    def parse_variable(cls, _variable):
+        # type: (str) -> ASTVariable
+        builder, parser = cls._parse_input_stream(InputStream(_variable))
+        ret = builder.visit(parser.variable())
         cls.set_source_positions(ret)
         return ret
