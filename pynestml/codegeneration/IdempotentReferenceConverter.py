@@ -112,7 +112,7 @@ class IdempotentReferenceConverter(IReferenceConverter):
         return str(_op)
 
     def convertLogicalNot(self):
-        return 'not'
+        return 'not %s'
 
     def convertBitOperator(self, _op):
         return str(_op)

@@ -64,7 +64,7 @@ class ExpressionsPrettyPrinter(object):
                 return self._types_printer.pretty_print(_expr.getNumericLiteral()) + '*' + \
                        self._reference_converter.convertNameReference(_expr.getVariable())
             elif _expr.isNumericLiteral():
-                return str(_expr.getNumericLiteral())
+                return self._types_printer.pretty_print(_expr.getNumericLiteral())
             elif _expr.isInfLiteral():
                 return self._reference_converter.convertConstant('inf')
             elif _expr.isString():

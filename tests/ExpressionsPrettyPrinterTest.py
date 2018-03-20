@@ -32,10 +32,7 @@ from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
 from pynestml.modelprocessor.SymbolTable import SymbolTable
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
-from pynestml.utils.StatementIndexingVisitor import StatementIndexingVisitor
-from tests.resources.TestModels import TestModels
 
-Logger.initLogger(LOGGING_LEVEL.ERROR)
 SymbolTable.initializeSymbolTable(ASTSourcePosition())
 PredefinedUnits.registerUnits()
 PredefinedTypes.registerTypes()
@@ -48,54 +45,32 @@ class ExpressionsPrettyPrinterTest(unittest.TestCase):
     """
     Test class for everything Unit related.
     """
-
-    test_model = ModelParser.parse_model_from_string(TestModels.MagnitudeConversion.simple_assignment)
-    statements = StatementIndexingVisitor.visit_node(test_model)
+    # test_model = ModelParser.parse_model_from_string(TestModels.MagnitudeConversion.simple_assignment)
+    # statements = StatementIndexingVisitor.visit_node(test_model)
 
     def setUp(self):
+        # type: () -> None
         Logger.getLog().clear()
+        Logger.initLogger(LOGGING_LEVEL.ERROR)
 
-    def test_expression_after_magnitude_conversion_in_direct_assignment(self):
+    def test_print_implicit_conversion(self):
         # type: () -> None
-        stmt = self.statements["milliVolt = 10V"]
-        printed_rhs_expression = printer.print_expression(stmt.getAssignment().getExpression())
-        self.assertEqual('1000.0 * (10*V)', printed_rhs_expression)
+        expression = ModelParser.parse_expression('270 nS')
+        expression.setImplicitConversionFactor(0.001)
+        printed_rhs_expression = printer.print_expression(expression)
+        self.assertEqual('0.001 * (270*nS)', printed_rhs_expression)
 
-    def test_expression_after_nested_magnitude_conversion_in_direct_assignment(self):
+    def test_print_numeric_literal_with_unit(self):
         # type: () -> None
-        stmt = self.statements["milliVolt = 10V + 5mV + 20V + 1kV"]
-        printed_rhs_expression = printer.print_expression(stmt.getAssignment().getExpression())
-        self.assertEqual('1000.0 * (10*V + 0.001 * (5*mV) + 20*V + 1000.0 * (1*kV))', printed_rhs_expression)
+        expression = ModelParser.parse_expression('7 mA')
+        printed_rhs_expression = printer.print_expression(expression)
+        self.assertEqual('7*mA', printed_rhs_expression)
 
-    def test_expression_after_magnitude_conversion_in_compound_assignment(self):
+    def test_print_compound_assignment(self):
         # type: () -> None
-        stmt = self.statements["Volt += 1200mV"]
-        printed_rhs_expression = printer.print_expression(stmt.getAssignment().getExpression())
-        self.assertEqual('0.001 * (1200*mV)', printed_rhs_expression)
-
-    def test_expression_after_magnitude_conversion_in_declaration(self):
-        # type: () -> None
-        stmt = self.statements["milliVolt mV = 10V"]
-        printed_rhs_expression = printer.print_expression(stmt.getExpression())
-        self.assertEqual('1000.0 * (10*V)', printed_rhs_expression)
-
-    def test_expression_after_magnitude_conversion_in_standalone_function_call(self):
-        # type: () -> None
-        stmt = self.statements["take_mV(10V)"]
-        printed_function_call = printer.print_function_call(stmt.getFunctionCall())
-        self.assertEqual('take_mV(1000.0 * (10*V))', printed_function_call)
-
-    def test_expression_after_magnitude_conversion_in_rhs_function_call(self):
-        # type: () -> None
-        stmt = self.statements["milliVolt = take_mV_return_mV(10V)"]
-        printed_function_call = printer.print_expression(stmt.getAssignment().getExpression())
-        self.assertEqual('take_mV_return_mV(1000.0 * (10*V))', printed_function_call)
-
-    def test_return_stmt_after_magnitude_conversion_in_function_body(self):
-        # type: () -> None
-        stmt = self.statements["return milliVolt"]
-        printed_return_stmt = printer.print_expression(stmt.getReturnStmt().getExpression())
-        self.assertEqual('0.001 * (milliVolt)', printed_return_stmt)
+        expression = ModelParser.parse_expression('lhs + rhs')
+        printed_rhs_expression = printer.print_expression(expression)
+        self.assertEqual('lhs + rhs', printed_rhs_expression)
 
     def test_print_numeric_literal(self):
         # type: () -> None
@@ -151,17 +126,29 @@ class ExpressionsPrettyPrinterTest(unittest.TestCase):
         printed_rhs_expression = printer.print_expression(expression)
         self.assertEqual('(foo)?(bar):(foobar)', printed_rhs_expression)
 
+    def test_print_function_without_parameters(self):
+        # type: () -> None
+        expression = ModelParser.parse_expression('foo()')
+        printed_rhs_expression = printer.print_expression(expression)
+        self.assertEqual('foo()', printed_rhs_expression)
+
+    def test_print_function_with_two_parameters(self):
+        # type: () -> None
+        expression = ModelParser.parse_expression('foo(a, b)')
+        printed_rhs_expression = printer.print_expression(expression)
+        self.assertEqual('foo(a, b)', printed_rhs_expression)
+
     def test_print_invalid_expression_return_value(self):
         # type: () -> None
         expression = ASTSimpleExpression.makeASTSimpleExpression()
         printed_rhs_expression = printer.print_expression(expression)
         self.assertEqual('', printed_rhs_expression)
 
-    def test_print_invalid_expression_return_value(self):
+    def test_print_invalid_expression_log_message(self):
         # type: () -> None
         expression = ASTSimpleExpression.makeASTSimpleExpression()
-        printed_rhs_expression = printer.print_expression(expression)
-        message = Logger.getLog().values()[0][5]
+        printer.print_expression(expression)
+        (a, b, c, d, e, message) = Logger.getLog()[0]
         self.assertEqual('Unsupported expression in expression pretty printer!', message)
 
     def test_init_parameter_reference_converter(self):
