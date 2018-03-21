@@ -86,7 +86,7 @@ class NestAssignmentsHelper(object):
                 vector_variable = symbol
                 break
         if vector_variable is None:
-            vector_variable = _assignment.getScope(). \
-                resolveToSymbol(_assignment.getVariable().getCompleteName(), SymbolKind.VARIABLE)
+            vector_variable = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
+                                                                     SymbolKind.VARIABLE)
         # this function is called only after the corresponding assignment has been tested for been a vector
         return vector_variable.getVectorParameter()
