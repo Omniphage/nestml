@@ -50,7 +50,7 @@ class GSLReferenceConverter(IReferenceConverter):
         self._is_upper_bound = _is_upper_bound
         return
 
-    #TODO: Restructure this so the giant conditional goes away
+    # TODO: Restructure this so the giant conditional goes away
     def convert_name_reference(self, _ast_variable):
         # type: (ASTVariable) -> str
         variable_name = GSLNamesConverter.convert_to_cpp_name(_ast_variable.getName())
