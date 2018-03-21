@@ -19,10 +19,12 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from typing import Union
 
+from pynestml.modelprocessor.ASTAssignment import ASTAssignment
+from pynestml.modelprocessor.ASTVariable import ASTVariable
+from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
-from pynestml.modelprocessor.ASTAssignment import ASTAssignment
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.utils.Messages import Messages
 
 
 class NestAssignmentsHelper(object):
@@ -38,7 +40,8 @@ class NestAssignmentsHelper(object):
         if symbol is not None:
             return symbol
         else:
-            Logger.logMessage('No symbol could be resolved!', LOGGING_LEVEL.ERROR)
+            code, message = Messages.getCouldNotResolve(_assignment.getVariable().getCompleteName())
+            Logger.logMessage(_code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR)
             return
 
     @staticmethod
@@ -58,21 +61,20 @@ class NestAssignmentsHelper(object):
     @staticmethod
     def is_vectorized_assignment(_assignment):
         # type: (ASTAssignment) -> bool
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
-                                                        SymbolKind.VARIABLE)
-        if symbol is not None:
-            if symbol.hasVectorParameter():
+        for var in _assignment.getExpression().getVariables():
+            if NestAssignmentsHelper.variable_has_vector_parameter(var):
                 return True
-            else:
-                # otherwise we have to check if one of the variables used in the rhs is a vector
-                for var in _assignment.getExpression().getVariables():
-                    symbol = var.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
-                    if symbol is not None and symbol.hasVectorParameter():
-                        return True
-                return False
-        else:
-            Logger.logMessage('No symbol could be resolved!', LOGGING_LEVEL.ERROR)
-            return False
+        code, message = Messages.getCouldNotResolve(_assignment.getVariable().getCompleteName())
+        Logger.logMessage(_code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR)
+        return False
+
+    @staticmethod
+    def variable_has_vector_parameter(_variable):
+        # type: (ASTVariable) -> bool
+        symbol = _variable.getScope().resolveToSymbol(_variable.getCompleteName(), SymbolKind.VARIABLE)
+        if symbol is not None and symbol.hasVectorParameter():
+            return True
+        return False
 
     @staticmethod
     def print_size_parameter(_assignment):
