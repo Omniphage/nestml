@@ -7,9 +7,9 @@
 #}
 {%- if variable.hasDeclaringExpression() and not variable.isShape() %}
   {%- if variable.hasVectorParameter() %}
-  {{printer.printOrigin(variable)}}{{names.name(variable)}}.resize(P_.{{variable.getVectorParameter()}}, {{printer.printExpression(variable.getDeclaringExpression())}}); // as {{variable.getTypeSymbol().print_symbol()}}
+  {{printer.printOrigin(variable)}}{{names.name(variable)}}.resize(P_.{{variable.getVectorParameter()}}, {{printer.print_expression(variable.getDeclaringExpression())}}); // as {{variable.getTypeSymbol().print_symbol()}}
   {%- else %}
-  {{printer.printOrigin(variable)}}{{names.name(variable)}} = {{printer.printExpression(variable.getDeclaringExpression())}}; // as {{variable.getTypeSymbol().print_symbol()}}
+  {{printer.printOrigin(variable)}}{{names.name(variable)}} = {{printer.print_expression(variable.getDeclaringExpression())}}; // as {{variable.getTypeSymbol().print_symbol()}}
   {%- endif %}
 {%- else %}
   {%- if variable.hasVectorParameter() %}

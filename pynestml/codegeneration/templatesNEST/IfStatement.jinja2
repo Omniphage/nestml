@@ -9,12 +9,12 @@
 
   @param ast ASTIfStmt
 #}
-if ({{printer.printExpression(ast.getIfClause().getCondition())}}) {
+if ({{printer.print_expression(ast.getIfClause().getCondition())}}) {
 {%- with ast = ast.getIfClause().getBlock() -%}
 {%- include "Block.jinja2" -%}
 {%- endwith -%}
 {%- for elif in ast.getElifClauses() -%}
-}else if({{printer.printExpression(elif.getCondition())}}) {
+}else if({{printer.print_expression(elif.getCondition())}}) {
 {%- with ast = elif.getBlock() -%}
 {%- include "Block.jinja2" -%}
 {%- endwith -%}
