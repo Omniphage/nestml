@@ -53,11 +53,11 @@ class ExpressionsPrettyPrinter(object):
     def print_expression(self, _expr):
         # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
         if _expr.getImplicitConversionFactor() is not None:
-            return str(_expr.getImplicitConversionFactor()) + ' * (' + self.__do_print(_expr) + ')'
+            return str(_expr.getImplicitConversionFactor()) + ' * (' + self._do_print(_expr) + ')'
         else:
-            return self.__do_print(_expr)
+            return self._do_print(_expr)
 
-    def __do_print(self, _expr):
+    def _do_print(self, _expr):
         # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.hasUnit():

@@ -32,7 +32,7 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
     def _do_print(self, _expr=None):
         # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
         if isinstance(_expr, ASTSimpleExpression):
-            if _expr.isNumericLiteral():
+            if _expr.isNumericLiteral() or _expr.hasUnit():
                 return self._types_printer.pretty_print(_expr.getNumericLiteral())
 
         return super(LegacyExpressionPrinter, self)._do_print(_expr)
