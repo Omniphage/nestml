@@ -17,6 +17,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from typing import Union
+
+from pynestml.modelprocessor.VariableSymbol import VariableSymbol
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 from pynestml.modelprocessor.ASTAssignment import ASTAssignment
 from pynestml.modelprocessor.Symbol import SymbolKind
@@ -27,33 +30,20 @@ class NestAssignmentsHelper(object):
     This class contains several helper functions as used during printing of code.
     """
 
-    def lhsVariable(self, _assignment=None):
-        """
-        Returns the corresponding symbol of the assignment.
-        :param _assignment: a single assignment.
-        :type _assignment: ASTAssignment.
-        :return: a single variable symbol
-        :rtype: VariableSymbol
-        """
-        assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
-            '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(_assignment)
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),SymbolKind.VARIABLE)
+    @staticmethod
+    def lhs_variable(_assignment):
+        # type: (ASTAssignment) -> Union[None,VariableSymbol]
+        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
+                                                        SymbolKind.VARIABLE)
         if symbol is not None:
             return symbol
         else:
             Logger.logMessage('No symbol could be resolved!', LOGGING_LEVEL.ERROR)
             return
 
-    def printAssignmentsOperation(self, _assignment=None):
-        """
-        Returns a nest processable format of the assignment operation.
-        :param _assignment: a single assignment
-        :type _assignment: ASTAssignment
-        :return: the corresponding string representation
-        :rtype: str
-        """
-        assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
-            '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(_assignment)
+    @staticmethod
+    def print_assignments_operation(_assignment):
+        # type: (ASTAssignment) -> str
         if _assignment.isCompoundSum():
             return '+='
         elif _assignment.isCompoundMinus():
@@ -65,17 +55,9 @@ class NestAssignmentsHelper(object):
         else:
             return '='
 
-    def isVectorizedAssignment(self, _assignment=None):
-        """
-        Indicates whether the handed over assignment is vectorized, i.e., an assignment of vectors.
-        :param _assignment: a single assignment.
-        :type _assignment: ASTAssignment
-        :return: True if vectorized, otherwise False.
-        :rtype: bool
-        """
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
-            '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(_assignment)
+    @staticmethod
+    def is_vectorized_assignment(_assignment):
+        # type: (ASTAssignment) -> bool
         symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
                                                         SymbolKind.VARIABLE)
         if symbol is not None:
@@ -92,25 +74,17 @@ class NestAssignmentsHelper(object):
             Logger.logMessage('No symbol could be resolved!', LOGGING_LEVEL.ERROR)
             return False
 
-    def printSizeParameter(self, _assignment=None):
-        """
-        Prints in a nest processable format the size parameter of the assignment.
-        :param _assignment: a single assignment
-        :type _assignment: ASTAssignment
-        :return: the corresponding size parameter
-        :rtype: str
-        """
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
-            '(PyNestML.CodeGeneration.Assignments) No or wrong type of assignment provided (%s)!' % type(_assignment)
-        vectorVariable = None
+    @staticmethod
+    def print_size_parameter(_assignment):
+        # type: (ASTAssignment) -> VariableSymbol
+        vector_variable = None
         for variable in _assignment.getExpression().getVariables():
             symbol = variable.getScope().resolveToSymbol(variable.getCompleteName(), SymbolKind.VARIABLE)
             if symbol is not None and symbol.hasVectorParameter():
-                vectorVariable = symbol
+                vector_variable = symbol
                 break
-        if vectorVariable is None:
-            vectorVariable = _assignment.getScope(). \
+        if vector_variable is None:
+            vector_variable = _assignment.getScope(). \
                 resolveToSymbol(_assignment.getVariable().getCompleteName(), SymbolKind.VARIABLE)
         # this function is called only after the corresponding assignment has been tested for been a vector
-        return vectorVariable.getVectorParameter()
+        return vector_variable.getVectorParameter()
