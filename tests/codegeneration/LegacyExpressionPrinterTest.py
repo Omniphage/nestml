@@ -23,6 +23,7 @@ from mock import Mock, patch
 
 from pynestml.codegeneration.ExpressionsPrettyPrinter import TypesPrinter
 from pynestml.codegeneration.LegacyExpressionPrinter import LegacyExpressionPrinter
+from pynestml.modelprocessor.ASTExpression import ASTExpression
 from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 
 
@@ -30,37 +31,41 @@ from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 class LegacyExpressionPrinterTest(unittest.TestCase):
     class_under_test = None
     mock_types_printer = None
+    mock_simple_expression = None
 
     # noinspection PyPep8Naming
     def setUp(self):
         self.class_under_test = LegacyExpressionPrinter()
         self.mock_types_printer = Mock(TypesPrinter)
+        self.mock_simple_expression = Mock(ASTSimpleExpression)
 
     def test_do_print_simple_expression_with_literal_and_unit(self):
-        expression = Mock(ASTSimpleExpression)
         self.class_under_test._types_printer = self.mock_types_printer
-        result = self.class_under_test._do_print(expression)
+        result = self.class_under_test._do_print(self.mock_simple_expression)
         self.assertEqual(self.mock_types_printer.pretty_print(), result)
 
     def test_do_print_simple_expression_without_literal(self):
-        expression = Mock(ASTSimpleExpression)
-        expression.isNumericLiteral.return_value = False
+        self.mock_simple_expression.isNumericLiteral.return_value = False
         self.class_under_test._types_printer = self.mock_types_printer
-        result = self.class_under_test._do_print(expression)
+        result = self.class_under_test._do_print(self.mock_simple_expression)
         self.assertEqual(self.mock_types_printer.pretty_print(), result)
 
     def test_do_print_simple_expression_without_unit(self):
-        expression = Mock(ASTSimpleExpression)
-        expression.hasUnit.return_value = False
+        self.mock_simple_expression.hasUnit.return_value = False
         self.class_under_test._types_printer = self.mock_types_printer
-        result = self.class_under_test._do_print(expression)
+        result = self.class_under_test._do_print(self.mock_simple_expression)
         self.assertEqual(self.mock_types_printer.pretty_print(), result)
 
     @patch('pynestml.codegeneration.LegacyExpressionPrinter.super')
     def test_do_print_simple_expression_without_unit_and_literal(self, _mock_super):
-        expression = Mock(ASTSimpleExpression)
-        expression.isNumericLiteral.return_value = False
-        expression.hasUnit.return_value = False
+        self.mock_simple_expression.isNumericLiteral.return_value = False
+        self.mock_simple_expression.hasUnit.return_value = False
+        self.class_under_test._do_print(self.mock_simple_expression)
+        _mock_super.assert_called()
+
+    @patch('pynestml.codegeneration.LegacyExpressionPrinter.super')
+    def test_do_print_expression(self, _mock_super):
+        expression = Mock(ASTExpression)
         self.class_under_test._types_printer = self.mock_types_printer
         self.class_under_test._do_print(expression)
         _mock_super.assert_called()
