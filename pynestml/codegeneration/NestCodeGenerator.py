@@ -181,7 +181,7 @@ class NestCodeGenerator(object):
         namespace['moduleName'] = FrontendConfiguration.getModuleName()
         # helper classes and objects
         converter = NESTReferenceConverter(_usesGSL=False)
-        legacyPrettyPrinter = LegacyExpressionPrinter(_referenceConverter=converter)
+        legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
         namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
         namespace['assignments'] = NestAssignmentsHelper()
         namespace['names'] = NestNamesConverter()
@@ -197,7 +197,7 @@ class NestCodeGenerator(object):
         self.defineSolverType(namespace, _neuron)
         # GSL stuff
         gslConverter = GSLReferenceConverter()
-        gslPrinter = LegacyExpressionPrinter(_referenceConverter=gslConverter)
+        gslPrinter = LegacyExpressionPrinter(_reference_converter=gslConverter)
         namespace['printerGSL'] = gslPrinter
         return namespace
 
@@ -219,7 +219,7 @@ class NestCodeGenerator(object):
                 _namespace['names'] = GSLNamesConverter()
                 _namespace['useGSL'] = True
                 converter = NESTReferenceConverter(_usesGSL=True)
-                legacyPrettyPrinter = LegacyExpressionPrinter(_referenceConverter=converter)
+                legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
                 _namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
         return
 

@@ -32,7 +32,7 @@ class GSLNamesConverterTest(unittest.TestCase):
 
     def test_array_index(self, _mock_nestml_names_converter):
         # type: () -> None
-        _mock_nestml_names_converter.convertToCPPName.return_value = 'varfoo'
+        _mock_nestml_names_converter.convert_to_cpp_name.return_value = 'varfoo'
         result = self.class_under_test.array_index(Mock())
         self.assertEqual('State_::varfoo', result)
 
@@ -44,7 +44,7 @@ class GSLNamesConverterTest(unittest.TestCase):
 
     def test_name_with_initial_value(self, _mock_nestml_names_converter):
         # type: () -> None
-        _mock_nestml_names_converter.convertToCPPName.return_value = 'varfoo'
+        _mock_nestml_names_converter.convert_to_cpp_name.return_value = 'varfoo'
         mock_var_symbol = Mock(VariableSymbol)
         mock_var_symbol.isInitValues.return_value = True
         mock_var_symbol.isFunction.return_value = False
@@ -65,12 +65,12 @@ class GSLNamesConverterTest(unittest.TestCase):
 
     def test_buffer_value(self, _mock_nestml_names_converter):
         # type: () -> None
-        _mock_nestml_names_converter.bufferValue.return_value = 'buffer_value_called'
+        _mock_nestml_names_converter.buffer_value.return_value = 'buffer_value_called'
         result = self.class_under_test.buffer_value(Mock())
         self.assertEqual('buffer_value_called', result)
 
     def test_convert_to_cpp_name(self, _mock_nestml_names_converter):
         # type: () -> None
-        _mock_nestml_names_converter.convertToCPPName.return_value = 'cpp_name_called'
+        _mock_nestml_names_converter.convert_to_cpp_name.return_value = 'cpp_name_called'
         result = self.class_under_test.convert_to_cpp_name('mock')
         self.assertEqual('cpp_name_called', result)

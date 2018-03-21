@@ -49,7 +49,7 @@ class NestPrinter(object):
             self.__expressionPrettyPrinter = ExpressionsPrettyPrinter(_referenceConvert)
         return
 
-    def printExpression(self, _ast=None):
+    def print_expression(self, _ast=None):
         """
         Pretty
         Prints the handed over expression to a nest readable format.
@@ -288,9 +288,9 @@ class NestPrinter(object):
         assert (_buffer is not None and isinstance(_buffer, VariableSymbol)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of buffer symbol provided (%s)!' % type(_buffer)
         if _buffer.hasVectorParameter():
-            return 'std::vector<double> ' + NestNamesConverter.bufferValue(_buffer)
+            return 'std::vector<double> ' + NestNamesConverter.buffer_value(_buffer)
         else:
-            return 'double ' + NestNamesConverter.bufferValue(_buffer)
+            return 'double ' + NestNamesConverter.buffer_value(_buffer)
 
     def printBufferDeclaration(self, _buffer=None):
         """

@@ -36,9 +36,9 @@ class NestNamesConverter(object):
         :rtype: str
         """
         if isinstance(_obj, VariableSymbol):
-            return cls.convertToCPPName(_obj.getSymbolName())
+            return cls.convert_to_cpp_name(_obj.getSymbolName())
         else:
-            return cls.convertToCPPName(_obj.getCompleteName())
+            return cls.convert_to_cpp_name(_obj.getCompleteName())
 
     @classmethod
     def getter(cls, _variableSymbol=None):
@@ -52,10 +52,10 @@ class NestNamesConverter(object):
         assert (_variableSymbol is not None and isinstance(_variableSymbol, VariableSymbol)), \
             '(PyNestML.CodeGeneration.NamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
                 _variableSymbol)
-        return 'get_' + cls.convertToCPPName(_variableSymbol.getSymbolName())
+        return 'get_' + cls.convert_to_cpp_name(_variableSymbol.getSymbolName())
 
     @classmethod
-    def bufferValue(cls, _variableSymbol=None):
+    def buffer_value(cls, _variableSymbol=None):
         """
         Converts for a handed over symbol the corresponding name of the buffer to a nest processable format.
         :param _variableSymbol: a single variable symbol.
@@ -80,10 +80,10 @@ class NestNamesConverter(object):
         assert (_variableSymbol is not None and isinstance(_variableSymbol, VariableSymbol)), \
             '(PyNestML.CodeGeneration.NamesConverter) No or wrong type of variable symbol provided (%s)!' % type(
                 _variableSymbol)
-        return 'set_' + cls.convertToCPPName(_variableSymbol.getSymbolName())
+        return 'set_' + cls.convert_to_cpp_name(_variableSymbol.getSymbolName())
 
     @classmethod
-    def convertToCPPName(cls, _variableName=None):
+    def convert_to_cpp_name(cls, _variableName=None):
         # type: (str) -> str
         """
         Converts a handed over name to the corresponding nest / c++ naming guideline.

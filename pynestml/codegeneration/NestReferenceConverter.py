@@ -130,7 +130,7 @@ class NESTReferenceConverter(IReferenceConverter):
         assert (_astVariable is not None and isinstance(_astVariable, ASTVariable)), \
             '(PyNestML.CodeGeneration.NestReferenceConverter) No or wrong type of uses-gsl provided (%s)!' % type(
                 _astVariable)
-        variableName = NestNamesConverter.convertToCPPName(_astVariable.getCompleteName())
+        variableName = NestNamesConverter.convert_to_cpp_name(_astVariable.getCompleteName())
 
         if PredefinedUnits.isUnit(_astVariable.getCompleteName()):
             return str(
@@ -149,7 +149,7 @@ class NESTReferenceConverter(IReferenceConverter):
                 if symbol.isLocal():
                     return variableName + ('[i]' if symbol.hasVectorParameter() else '')
                 elif symbol.isBuffer():
-                    return NestPrinter.printOrigin(symbol) + NestNamesConverter.bufferValue(symbol) \
+                    return NestPrinter.printOrigin(symbol) + NestNamesConverter.buffer_value(symbol) \
                            + ('[i]' if symbol.hasVectorParameter() else '')
                 else:
                     if symbol.isFunction():

@@ -29,13 +29,13 @@ class GSLNamesConverter(object):
     @classmethod
     def array_index(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        return 'State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName())
+        return 'State_::' + NestNamesConverter.convert_to_cpp_name(_variable_symbol.getSymbolName())
 
     @classmethod
     def name(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
         if _variable_symbol.isInitValues() and not _variable_symbol.isFunction():
-            return 'ode_state[State_::' + NestNamesConverter.convertToCPPName(_variable_symbol.getSymbolName()) + ']'
+            return 'ode_state[State_::' + NestNamesConverter.convert_to_cpp_name(_variable_symbol.getSymbolName()) + ']'
         else:
             return NestNamesConverter.name(_variable_symbol)
 
@@ -52,9 +52,9 @@ class GSLNamesConverter(object):
     @classmethod
     def buffer_value(cls, _variable_symbol):
         # type: (VariableSymbol) -> str
-        return NestNamesConverter.bufferValue(_variable_symbol)
+        return NestNamesConverter.buffer_value(_variable_symbol)
 
     @classmethod
     def convert_to_cpp_name(cls, _variable_name):
         # type: (str) -> str
-        return NestNamesConverter.convertToCPPName(_variable_name)
+        return NestNamesConverter.convert_to_cpp_name(_variable_name)
