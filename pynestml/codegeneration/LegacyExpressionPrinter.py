@@ -17,7 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from typing import Union
+
 from pynestml.codegeneration.ExpressionsPrettyPrinter import ExpressionsPrettyPrinter
+from pynestml.modelprocessor.ASTExpression import ASTExpression
 from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 
 
@@ -27,9 +30,9 @@ class LegacyExpressionPrinter(ExpressionsPrettyPrinter):
     """
 
     def _do_print(self, _expr=None):
+        # type: (Union[ASTExpression,ASTSimpleExpression]) -> str
         if isinstance(_expr, ASTSimpleExpression):
             if _expr.isNumericLiteral():
                 return self._types_printer.pretty_print(_expr.getNumericLiteral())
 
         return super(LegacyExpressionPrinter, self)._do_print(_expr)
-         
