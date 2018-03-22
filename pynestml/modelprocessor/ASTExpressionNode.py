@@ -1,5 +1,5 @@
 #
-# ASTElifClause.py
+# ASTExpressionNode.py
 #
 # This file is part of NEST.
 #

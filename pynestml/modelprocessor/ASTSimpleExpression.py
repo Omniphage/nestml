@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.ASTExpressionElement import ASTExpressionNode
+from pynestml.modelprocessor.ASTExpressionNode import ASTExpressionNode
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
 from pynestml.modelprocessor.ASTVariable import ASTVariable
 from pynestml.modelprocessor.Either import Either
