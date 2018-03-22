@@ -66,9 +66,8 @@ def main(args):
                 neurons.remove(neuron)
 
     if not FrontendConfiguration.isDryRun():
-        nestGenerator = NestCodeGenerator()
-        nestGenerator.analyseAndGenerateNeurons(neurons)
-        nestGenerator.generateNESTModuleCode(neurons)
+        NestCodeGenerator(neurons).generate()
+
     else:
         code, message = Messages.getDryRun()
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
