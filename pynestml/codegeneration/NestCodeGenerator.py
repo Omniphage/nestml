@@ -83,36 +83,68 @@ class TemplateRenderer(object):
         return self.environment.template_neuron_implementation.render(_namespace)
 
 
+class TargetPathBuilder(object):
+
+    @property
+    def sli_directory(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), 'sli')
+
+    @property
+    def module_header_path(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.h'
+
+    @property
+    def module_implementation_path(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.cpp'
+
+    @property
+    def module_implementation_path(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.cpp'
+
+    @property
+    def c_make_lists_path(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), 'CMakeLists') + '.txt'
+
+    @property
+    def sli_init_path(self):
+        return os.path.join(FrontendConfiguration.getTargetPath(), 'sli',
+                            FrontendConfiguration.getModuleName() + "-init") + '.sli'
+
+
 class NestCodeGenerator(object):
     """
     This class represents a generator which can be used to print an internal ast to a model in
     nest format.
     """
     renderer = None
+    paths = None
 
-    def __init__(self):
+    def __init__(self, _renderer=TemplateRenderer(), _path_builder=TargetPathBuilder()):
         # setup the environment
-        self.renderer = TemplateRenderer()
+        self.renderer = _renderer
+        self.paths = _path_builder
         return
 
     def generateNESTModuleCode(self, _neurons):
         """Generates code that is necessary to integrate neuron models into the NEST infrastructure."""
 
         namespace = {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
-                                   FrontendConfiguration.getModuleName())) + '.h', 'w+') as f:
+
+        with open(self.paths.module_header_path, 'w+') as f:
             f.write(self.renderer.render_module_header(namespace))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
-                                   FrontendConfiguration.getModuleName())) + '.cpp', 'w+') as f:
+
+        with open(self.paths.module_implementation_path, 'w+') as f:
             f.write(self.renderer.render_module_class(namespace))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(),
-                                   'CMakeLists')) + '.txt', 'w+') as f:
+
+        with open(self.paths.c_make_lists_path, 'w+') as f:
             f.write(self.renderer.render_c_make_lists(namespace))
-        if not os.path.isdir(os.path.realpath(os.path.join(FrontendConfiguration.getTargetPath(), 'sli'))):
-            os.makedirs(os.path.realpath(os.path.join(FrontendConfiguration.getTargetPath(), 'sli')))
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), 'sli',
-                                   FrontendConfiguration.getModuleName() + "-init")) + '.sli', 'w+') as f:
+
+        if not os.path.isdir(os.path.realpath(self.paths.sli_directory)):
+            os.makedirs(os.path.realpath(self.paths.sli_directory))
+
+        with open(self.paths.sli_init_path, 'w+') as f:
             f.write(self.renderer.render_sli_init(namespace))
+
         code, message = Messages.getModuleGenerated(FrontendConfiguration.getTargetPath())
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         return
