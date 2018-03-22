@@ -59,31 +59,7 @@ class TemplateEnvironment(object):
         self.template_neuron_implementation = env.get_template('NeuronClass.jinja2')
         return
 
-
-class TemplateRenderer(object):
-    def __init__(self, _environment=TemplateEnvironment()):
-        self.environment = _environment
-
-    def render_module_header(self, _namespace):
-        return self.environment.template_module_header.render(_namespace)
-
-    def render_module_class(self, _namespace):
-        return self.environment.template_module_class.render(_namespace)
-
-    def render_c_make_lists(self, _namespace):
-        return self.environment.template_c_make_lists.render(_namespace)
-
-    def render_sli_init(self, _namespace):
-        return self.environment.template_sli_init.render(_namespace)
-
-    def render_neuron_header(self, _namespace):
-        return self.environment.template_neuron_header.render(_namespace)
-
-    def render_neuron_implementation(self, _namespace):
-        return self.environment.template_neuron_implementation.render(_namespace)
-
-
-class TargetPathBuilder(object):
+class PathBuilder(object):
 
     @property
     def sli_directory(self):
@@ -111,15 +87,45 @@ class TargetPathBuilder(object):
                             FrontendConfiguration.getModuleName() + "-init") + '.sli'
 
 
-class NestCodeGenerator(object):
+class TemplateRenderer(object):
+    def __init__(self, _environment=TemplateEnvironment()):
+        self.environment = _environment
+
+    def render_module_header(self, _namespace):
+        return self.environment.template_module_header.render(_namespace)
+
+    def render_module_class(self, _namespace):
+        return self.environment.template_module_class.render(_namespace)
+
+    def render_c_make_lists(self, _namespace):
+        return self.environment.template_c_make_lists.render(_namespace)
+
+    def render_sli_init(self, _namespace):
+        return self.environment.template_sli_init.render(_namespace)
+
+    def render_neuron_header(self, _namespace):
+        return self.environment.template_neuron_header.render(_namespace)
+
+    def render_neuron_implementation(self, _namespace):
+        return self.environment.template_neuron_implementation.render(_namespace)
+
+class FileGenerator(object):
+
+    def generate_file(self, _path, _content):
+        with open(_path, 'w+') as file:
+            file.write(_content)
+
+    def generate_files(self, _path_to_content_dict):
+        for path, content in _path_to_content_dict.items():
+            self.generate_file(path, content)
+
+
+class NestCodeGenerator(FileGenerator):
     """
     This class represents a generator which can be used to print an internal ast to a model in
     nest format.
     """
-    renderer = None
-    paths = None
-
-    def __init__(self, _renderer=TemplateRenderer(), _path_builder=TargetPathBuilder()):
+    def __init__(self, _renderer=TemplateRenderer(), _path_builder=PathBuilder()):
         # setup the environment
         self.renderer = _renderer
         self.paths = _path_builder
@@ -127,30 +133,37 @@ class NestCodeGenerator(object):
 
     def generateNESTModuleCode(self, _neurons):
         """Generates code that is necessary to integrate neuron models into the NEST infrastructure."""
-
-        namespace = {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
-
-        with open(self.paths.module_header_path, 'w+') as f:
-            f.write(self.renderer.render_module_header(namespace))
-
-        with open(self.paths.module_implementation_path, 'w+') as f:
-            f.write(self.renderer.render_module_class(namespace))
-
-        with open(self.paths.c_make_lists_path, 'w+') as f:
-            f.write(self.renderer.render_c_make_lists(namespace))
-
-        if not os.path.isdir(os.path.realpath(self.paths.sli_directory)):
-            os.makedirs(os.path.realpath(self.paths.sli_directory))
-
-        with open(self.paths.sli_init_path, 'w+') as f:
-            f.write(self.renderer.render_sli_init(namespace))
-
+        self.create_sli_directory()
+        namespace = self.setup_nest_module_namespace(_neurons)
+        self.generate_nest_module_files(namespace)
         code, message = Messages.getModuleGenerated(FrontendConfiguration.getTargetPath())
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         return
 
+    def setup_nest_module_namespace(self, _neurons):
+        return {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
+
+    def create_sli_directory(self):
+        if not os.path.isdir(os.path.realpath(self.paths.sli_directory)):
+            os.makedirs(os.path.realpath(self.paths.sli_directory))
+
+    def generate_nest_module_files(self, namespace):
+        generation_configuration = {
+            # associate files and their contents
+            self.paths.module_header_path: self.renderer.render_module_header(namespace),
+            self.paths.module_implementation_path: self.renderer.render_module_class(namespace),
+            self.paths.c_make_lists_path: self.renderer.render_c_make_lists(namespace),
+            self.paths.sli_init_path: self.renderer.render_sli_init(namespace)
+        }
+        self.generate_files(generation_configuration)
+
+    def analyseAndGenerateNeurons(self, _neurons):
+        for neuron in _neurons:
+            self.analyseAndGenerateNeuron(neuron)
+        return
+
     def analyseAndGenerateNeuron(self, _neuron):
-        """Analysis a single neuron, solves it and generates the corresponding code."""
+        """Analyse a single neuron, solve it and generate the corresponding code."""
         code, message = Messages.getStartProcessingNeuron(_neuron.getName())
         Logger.logMessage(_neuron=_neuron, _errorPosition=_neuron.getSourcePosition(), _code=code, _message=message,
                           _logLevel=LOGGING_LEVEL.INFO)
@@ -165,9 +178,31 @@ class NestCodeGenerator(object):
                           _logLevel=LOGGING_LEVEL.INFO)
         return
 
-    def analyseAndGenerateNeurons(self, _neurons):
-        for neuron in _neurons:
-            self.analyseAndGenerateNeuron(neuron)
+    @classmethod
+    def solveOdesAndShapes(cls, _neuron):
+        # it should be ensured that most one equations block is present
+        equationsBlock = _neuron.getEquationsBlocks()
+        if equationsBlock is None:
+            return _neuron
+        else:
+            if len(equationsBlock.getOdeEquations()) > 1 and len(equationsBlock.getOdeShapes()) == 0:
+                code, message = Messages.getNeuronSolvedBySolver(_neuron.getName())
+                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
+                                  _errorPosition=_neuron.getSourcePosition(), _logLevel=LOGGING_LEVEL.INFO)
+                return _neuron
+            else:
+                code, message = Messages.getNeuronAnalyzed(_neuron.getName())
+                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
+                                  _errorPosition=_neuron.getSourcePosition(),
+                                  _logLevel=LOGGING_LEVEL.INFO)
+                workingCopy = EquationsBlockProcessor.solveOdeWithShapes(_neuron)
+                return workingCopy
+
+    def generateNestCode(self, _neuron):
+        if not os.path.isdir(FrontendConfiguration.getTargetPath()):
+            os.makedirs(FrontendConfiguration.getTargetPath())
+        self.generateModelHeader(_neuron)
+        self.generateModelImplementation(_neuron)
         return
 
     def generateModelHeader(self, _neuron):
@@ -182,13 +217,6 @@ class NestCodeGenerator(object):
         outputNeuronImplementation = self.renderer.render_neuron_implementation(inputNeuronImplementation)
         with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.cpp', 'w+') as f:
             f.write(outputNeuronImplementation)
-        return
-
-    def generateNestCode(self, _neuron):
-        if not os.path.isdir(FrontendConfiguration.getTargetPath()):
-            os.makedirs(FrontendConfiguration.getTargetPath())
-        self.generateModelHeader(_neuron)
-        self.generateModelImplementation(_neuron)
         return
 
     def setupStandardNamespace(self, _neuron):
@@ -235,23 +263,3 @@ class NestCodeGenerator(object):
             if isinstance(shape, ASTOdeShape) and shape.getVariable().getDifferentialOrder() == 0:
                 return True
         return False
-
-    @classmethod
-    def solveOdesAndShapes(cls, _neuron):
-        # it should be ensured that most one equations block is present
-        equationsBlock = _neuron.getEquationsBlocks()
-        if equationsBlock is None:
-            return _neuron
-        else:
-            if len(equationsBlock.getOdeEquations()) > 1 and len(equationsBlock.getOdeShapes()) == 0:
-                code, message = Messages.getNeuronSolvedBySolver(_neuron.getName())
-                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
-                                  _errorPosition=_neuron.getSourcePosition(), _logLevel=LOGGING_LEVEL.INFO)
-                return _neuron
-            else:
-                code, message = Messages.getNeuronAnalyzed(_neuron.getName())
-                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
-                                  _errorPosition=_neuron.getSourcePosition(),
-                                  _logLevel=LOGGING_LEVEL.INFO)
-                workingCopy = EquationsBlockProcessor.solveOdeWithShapes(_neuron)
-                return workingCopy
