@@ -17,9 +17,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 from copy import copy
+
+from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 
 
 class OdeTransformer(object):
@@ -77,9 +77,9 @@ class OdeTransformer(object):
 
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
-        ASTHigherOrderVisitor.visit(_ast,
-                                    lambda x: replaceFunctionCallThroughFirstArgument(x)
-                                    if isinstance(x, ASTSimpleExpression) else True)
+        higher_order_visitor = ASTHigherOrderVisitor(
+            lambda x: replaceFunctionCallThroughFirstArgument(x) if isinstance(x, ASTSimpleExpression) else True)
+        _ast.accept(higher_order_visitor)
         return
 
     @classmethod
@@ -116,9 +116,9 @@ class OdeTransformer(object):
         res = list()
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
-        ASTHigherOrderVisitor.visit(_astNode, lambda x: res.append(x) if isinstance(x, ASTFunctionCall) and
-                                                                         x.getName() in _functionList
-        else True)
+        higher_order_visitor = ASTHigherOrderVisitor(
+            lambda x: res.append(x) if isinstance(x, ASTFunctionCall) and x.getName() in _functionList else True)
+        _astNode.accept(higher_order_visitor)
         return res
 
     @classmethod
@@ -133,7 +133,9 @@ class OdeTransformer(object):
         res = list()
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
-        ASTHigherOrderVisitor.visit(_astNode, lambda x: res.append(x) if isinstance(x, ASTFunctionCall) and
+
+        higher_order_visitor = ASTHigherOrderVisitor(lambda x: res.append(x) if isinstance(x, ASTFunctionCall) and
                                                                          x.getName() == PredefinedFunctions.COND_SUM
         else True)
+        _astNode.accept(higher_order_visitor)
         return res

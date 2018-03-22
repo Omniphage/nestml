@@ -120,7 +120,8 @@ class ModelParser(object):
     @classmethod
     def set_source_positions(cls, _node):
         # type: (ASTNode) -> None
-        ASTHigherOrderVisitor.visit(_node, lambda x: x.setSourcePosition(ASTSourcePosition.getAddedSourcePosition()))
+        higher_order_visitor = ASTHigherOrderVisitor(lambda x: x.setSourcePosition(ASTSourcePosition.getAddedSourcePosition()))
+        _node.accept(higher_order_visitor)
 
     @classmethod
     def parse_assignment(cls, _assignment):

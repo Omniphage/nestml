@@ -169,7 +169,8 @@ class ASTUtils(object):
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTVariable import ASTVariable
         res = list()
-        ASTHigherOrderVisitor.visit(_ast, lambda x: res.append(x) if isinstance(x, ASTVariable) else True)
+        higher_order_visitor = ASTHigherOrderVisitor(lambda x: res.append(x) if isinstance(x, ASTVariable) else True)
+        _ast.accept(higher_order_visitor)
         for var in res:
             if '\'' not in var.getCompleteName():
                 symbol = _ast.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
@@ -190,7 +191,8 @@ class ASTUtils(object):
         """
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         ret = list()
-        ASTHigherOrderVisitor.visit(_ast, lambda x: ret.append(x) if isinstance(x, _type) else True)
+        higher_order_visitor = ASTHigherOrderVisitor(lambda x: ret.append(x) if isinstance(x, _type) else True)
+        _ast.accept(higher_order_visitor)
         return ret
 
     @classmethod
@@ -228,8 +230,8 @@ class ASTUtils(object):
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
         ret = list()
-        ASTHigherOrderVisitor.visit(_ast, lambda x: ret.append(x) \
-            if isinstance(x, ASTFunctionCall) and x.getName() == _functionName else True)
+        higher_order_visitor= ASTHigherOrderVisitor(lambda x: ret.append(x) if isinstance(x, ASTFunctionCall) and x.getName() == _functionName else True)
+        _ast.accept(higher_order_visitor)
         return ret
 
     @classmethod
