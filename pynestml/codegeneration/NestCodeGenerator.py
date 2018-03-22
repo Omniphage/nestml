@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 import os
+from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 
 from jinja2 import Environment, FileSystemLoader
@@ -40,122 +41,177 @@ from pynestml.utils.Messages import Messages
 from pynestml.utils.OdeTransformer import OdeTransformer
 
 
-class TemplateEnvironment(object):
-    template_c_make_lists = None
-    template_module_class = None
-    template_module_header = None
-    template_sli_init = None
-    template_neuron_header = None
-    template_neuron_implementation = None
+class TemplateCollection(object):
+    env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templatesNEST')))
+    c_make_lists = env.get_template('CMakeLists.jinja2')
+    module_implementation = env.get_template('ModuleClass.jinja2')
+    module_header = env.get_template('ModuleHeader.jinja2')
+    sli_init = env.get_template('SLI_Init.jinja2')
+    neuron_header = env.get_template('NeuronHeader.jinja2')
+    neuron_implementation = env.get_template('NeuronClass.jinja2')
 
+
+class TargetPaths(object):
     def __init__(self):
-        # setup the environment
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templatesNEST')))
-        self.template_c_make_lists = env.get_template('CMakeLists.jinja2')
-        self.template_module_class = env.get_template('ModuleClass.jinja2')
-        self.template_module_header = env.get_template('ModuleHeader.jinja2')
-        self.template_sli_init = env.get_template('SLI_Init.jinja2')
-        self.template_neuron_header = env.get_template('NeuronHeader.jinja2')
-        self.template_neuron_implementation = env.get_template('NeuronClass.jinja2')
+        self.sli_directory = os.path.join(FrontendConfiguration.getTargetPath(), 'sli')
+        self.module_header_path = os.path.join(FrontendConfiguration.getTargetPath(),
+                                               FrontendConfiguration.getModuleName()) + '.h'
+        self.module_implementation_path = os.path.join(FrontendConfiguration.getTargetPath(),
+                                                       FrontendConfiguration.getModuleName()) + '.cpp'
+        self.c_make_lists_path = os.path.join(FrontendConfiguration.getTargetPath(), 'CMakeLists') + '.txt'
+        self.sli_init_path = os.path.join(FrontendConfiguration.getTargetPath(), 'sli',
+                                          FrontendConfiguration.getModuleName() + "-init") + '.sli'
+        self.neuron_header_path = os.path.join(FrontendConfiguration.getTargetPath(), '%s.h')
+        self.neuron_implementation_path = os.path.join(FrontendConfiguration.getTargetPath(), '%s.cpp')
+
+
+class TargetFile(object):
+    __metaclass__ = ABCMeta
+
+    def __init__(self, _path, _template):
+        self.path = _path
+        self.template = _template
+
+    def generate(self):
+        with open(self.path, 'w+') as file:
+            file.write(self.template.render(self.setup_namespace()))
+
+    @abstractmethod
+    def setup_namespace(self):
+        pass
+
+
+class ModuleLevelFile(TargetFile):
+    def __init__(self, _neurons, _path, _template):
+        super(ModuleLevelFile, self).__init__(_path, _template)
+        self.neurons = _neurons
+
+    def setup_namespace(self):
+        return {'neurons': self.neurons, 'moduleName': FrontendConfiguration.getModuleName()}
+
+
+class ModuleHeader(ModuleLevelFile):
+    def __init__(self, _neurons):
+        super(ModuleHeader, self).__init__(_neurons,
+                                           TargetPaths().module_header_path,
+                                           TemplateCollection.module_header)
+
+
+class ModuleImplementation(ModuleLevelFile):
+    def __init__(self, _neurons):
+        super(ModuleImplementation, self).__init__(_neurons,
+                                                   TargetPaths().module_implementation_path,
+                                                   TemplateCollection.module_implementation)
+
+
+class CMakeLists(ModuleLevelFile):
+    def __init__(self, _neurons):
+        super(CMakeLists, self).__init__(_neurons,
+                                         TargetPaths().c_make_lists_path,
+                                         TemplateCollection.c_make_lists)
+
+
+class SLIInit(ModuleLevelFile):
+    def __init__(self, _neurons):
+        self.create_sli_directory()
+        super(SLIInit, self).__init__(_neurons,
+                                      TargetPaths().sli_init_path,
+                                      TemplateCollection.sli_init)
+
+    @staticmethod
+    def create_sli_directory():
+        sli_directory_path = os.path.realpath(TargetPaths().sli_directory)
+        if not os.path.isdir(sli_directory_path):
+            os.makedirs(sli_directory_path)
+
+
+class NeuronFile(TargetFile):
+    def __init__(self, _neuron, _path, _template):
+        super(NeuronFile, self).__init__(_path % _neuron.getName(),
+                                         _template)
+        self.neuron = _neuron
+
+    def setup_namespace(self):
+        converter = NESTReferenceConverter(_usesGSL=False)
+        legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
+        printer = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
+        gslConverter = GSLReferenceConverter()
+        gslPrinter = LegacyExpressionPrinter(_reference_converter=gslConverter)
+        namespace = {'neuronName': self.neuron.getName(),
+                     'neuron': self.neuron,
+                     'moduleName': FrontendConfiguration.getModuleName(),
+                     'printer': printer,
+                     'assignments': NestAssignmentsHelper(),
+                     'names': NestNamesConverter(),
+                     'declarations': NestDeclarationsHelper(),
+                     'utils': ASTUtils(),
+                     'idemPrinter': LegacyExpressionPrinter(),
+                     'outputEvent': printer.printOutputEvent(self.neuron.getBody()),
+                     'isSpikeInput': ASTUtils.isSpikeInput(self.neuron.getBody()),
+                     'isCurrentInput': ASTUtils.isCurrentInput(self.neuron.getBody()),
+                     'odeTransformer': OdeTransformer(),
+                     'printerGSL': gslPrinter}
+        self.defineSolverType(namespace, self.neuron)
+        return namespace
+
+    def defineSolverType(self, _namespace, _neuron):
+        """For a handed over neuron this method enriches the namespace by methods which are used to solve
+        odes."""
+        _namespace['useGSL'] = False
+        if _neuron.getEquationsBlocks() is not None and len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
+            if (not self.functionShapeExists(_neuron.getEquationsBlocks().getOdeShapes())) or \
+                    len(_neuron.getEquationsBlocks().getOdeEquations()) > 1:
+                _namespace['names'] = GSLNamesConverter()
+                _namespace['useGSL'] = True
+                converter = NESTReferenceConverter(_usesGSL=True)
+                legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
+                _namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
         return
 
-class PathBuilder(object):
-
-    @property
-    def sli_directory(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), 'sli')
-
-    @property
-    def module_header_path(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.h'
-
-    @property
-    def module_implementation_path(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.cpp'
-
-    @property
-    def module_implementation_path(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), FrontendConfiguration.getModuleName()) + '.cpp'
-
-    @property
-    def c_make_lists_path(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), 'CMakeLists') + '.txt'
-
-    @property
-    def sli_init_path(self):
-        return os.path.join(FrontendConfiguration.getTargetPath(), 'sli',
-                            FrontendConfiguration.getModuleName() + "-init") + '.sli'
+    @classmethod
+    def functionShapeExists(cls, _shapes):
+        """For a handed over list of shapes this method checks if a single shape exits with differential order of 0."""
+        for shape in _shapes:
+            if isinstance(shape, ASTOdeShape) and shape.getVariable().getDifferentialOrder() == 0:
+                return True
+        return False
 
 
-class TemplateRenderer(object):
-    def __init__(self, _environment=TemplateEnvironment()):
-        self.environment = _environment
+class NeuronHeader(NeuronFile):
 
-    def render_module_header(self, _namespace):
-        return self.environment.template_module_header.render(_namespace)
-
-    def render_module_class(self, _namespace):
-        return self.environment.template_module_class.render(_namespace)
-
-    def render_c_make_lists(self, _namespace):
-        return self.environment.template_c_make_lists.render(_namespace)
-
-    def render_sli_init(self, _namespace):
-        return self.environment.template_sli_init.render(_namespace)
-
-    def render_neuron_header(self, _namespace):
-        return self.environment.template_neuron_header.render(_namespace)
-
-    def render_neuron_implementation(self, _namespace):
-        return self.environment.template_neuron_implementation.render(_namespace)
-
-class FileGenerator(object):
-
-    def generate_file(self, _path, _content):
-        with open(_path, 'w+') as file:
-            file.write(_content)
-
-    def generate_files(self, _path_to_content_dict):
-        for path, content in _path_to_content_dict.items():
-            self.generate_file(path, content)
+    def __init__(self, _neuron):
+        super(NeuronHeader, self).__init__(_neuron,
+                                           TargetPaths().neuron_header_path,
+                                           TemplateCollection.neuron_header)
 
 
-class NestCodeGenerator(FileGenerator):
+class NeuronImplementation(NeuronFile):
+
+    def __init__(self, _neuron):
+        super(NeuronImplementation, self).__init__(_neuron,
+                                                   TargetPaths().neuron_implementation_path,
+                                                   TemplateCollection.neuron_implementation)
+
+
+class NestCodeGenerator(object):
     """
     This class represents a generator which can be used to print an internal ast to a model in
     nest format.
     """
-    def __init__(self, _renderer=TemplateRenderer(), _path_builder=PathBuilder()):
-        # setup the environment
-        self.renderer = _renderer
-        self.paths = _path_builder
-        return
 
     def generateNESTModuleCode(self, _neurons):
         """Generates code that is necessary to integrate neuron models into the NEST infrastructure."""
-        self.create_sli_directory()
-        namespace = self.setup_nest_module_namespace(_neurons)
-        self.generate_nest_module_files(namespace)
+        self.generate_nest_module_files(_neurons)
         code, message = Messages.getModuleGenerated(FrontendConfiguration.getTargetPath())
         Logger.logMessage(_neuron=None, _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         return
 
-    def setup_nest_module_namespace(self, _neurons):
-        return {'neurons': _neurons, 'moduleName': FrontendConfiguration.getModuleName()}
-
-    def create_sli_directory(self):
-        if not os.path.isdir(os.path.realpath(self.paths.sli_directory)):
-            os.makedirs(os.path.realpath(self.paths.sli_directory))
-
-    def generate_nest_module_files(self, namespace):
-        generation_configuration = {
-            # associate files and their contents
-            self.paths.module_header_path: self.renderer.render_module_header(namespace),
-            self.paths.module_implementation_path: self.renderer.render_module_class(namespace),
-            self.paths.c_make_lists_path: self.renderer.render_c_make_lists(namespace),
-            self.paths.sli_init_path: self.renderer.render_sli_init(namespace)
-        }
-        self.generate_files(generation_configuration)
+    @staticmethod
+    def generate_nest_module_files(_neurons):
+        ModuleHeader(_neurons).generate()
+        ModuleImplementation(_neurons).generate()
+        CMakeLists(_neurons).generate()
+        SLIInit(_neurons).generate()
 
     def analyseAndGenerateNeurons(self, _neurons):
         for neuron in _neurons:
@@ -201,65 +257,6 @@ class NestCodeGenerator(FileGenerator):
     def generateNestCode(self, _neuron):
         if not os.path.isdir(FrontendConfiguration.getTargetPath()):
             os.makedirs(FrontendConfiguration.getTargetPath())
-        self.generateModelHeader(_neuron)
-        self.generateModelImplementation(_neuron)
+        NeuronHeader(_neuron).generate()
+        NeuronImplementation(_neuron).generate()
         return
-
-    def generateModelHeader(self, _neuron):
-        inputNeuronHeader = self.setupStandardNamespace(_neuron)
-        outputNeuronHeader = self.renderer.render_neuron_header(inputNeuronHeader)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.h', 'w+') as f:
-            f.write(outputNeuronHeader)
-        return
-
-    def generateModelImplementation(self, _neuron):
-        inputNeuronImplementation = self.setupStandardNamespace(_neuron)
-        outputNeuronImplementation = self.renderer.render_neuron_implementation(inputNeuronImplementation)
-        with open(str(os.path.join(FrontendConfiguration.getTargetPath(), _neuron.getName())) + '.cpp', 'w+') as f:
-            f.write(outputNeuronImplementation)
-        return
-
-    def setupStandardNamespace(self, _neuron):
-        converter = NESTReferenceConverter(_usesGSL=False)
-        legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
-        printer = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
-        gslConverter = GSLReferenceConverter()
-        gslPrinter = LegacyExpressionPrinter(_reference_converter=gslConverter)
-        namespace = {'neuronName': _neuron.getName(),
-                     'neuron': _neuron,
-                     'moduleName': FrontendConfiguration.getModuleName(),
-                     'printer': printer,
-                     'assignments': NestAssignmentsHelper(),
-                     'names': NestNamesConverter(),
-                     'declarations': NestDeclarationsHelper(),
-                     'utils': ASTUtils(),
-                     'idemPrinter': LegacyExpressionPrinter(),
-                     'outputEvent': printer.printOutputEvent(_neuron.getBody()),
-                     'isSpikeInput': ASTUtils.isSpikeInput(_neuron.getBody()),
-                     'isCurrentInput': ASTUtils.isCurrentInput(_neuron.getBody()),
-                     'odeTransformer': OdeTransformer(),
-                     'printerGSL': gslPrinter}
-        self.defineSolverType(namespace, _neuron)
-        return namespace
-
-    def defineSolverType(self, _namespace, _neuron):
-        """For a handed over neuron this method enriches the namespace by methods which are used to solve
-        odes."""
-        _namespace['useGSL'] = False
-        if _neuron.getEquationsBlocks() is not None and len(_neuron.getEquationsBlocks().getDeclarations()) > 0:
-            if (not self.functionShapeExists(_neuron.getEquationsBlocks().getOdeShapes())) or \
-                    len(_neuron.getEquationsBlocks().getOdeEquations()) > 1:
-                _namespace['names'] = GSLNamesConverter()
-                _namespace['useGSL'] = True
-                converter = NESTReferenceConverter(_usesGSL=True)
-                legacyPrettyPrinter = LegacyExpressionPrinter(_reference_converter=converter)
-                _namespace['printer'] = NestPrinter(_expressionPrettyPrinter=legacyPrettyPrinter)
-        return
-
-    @classmethod
-    def functionShapeExists(cls, _shapes):
-        """For a handed over list of shapes this method checks if a single shape exits with differential order of 0."""
-        for shape in _shapes:
-            if isinstance(shape, ASTOdeShape) and shape.getVariable().getDifferentialOrder() == 0:
-                return True
-        return False
