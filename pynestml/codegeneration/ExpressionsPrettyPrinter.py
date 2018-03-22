@@ -126,7 +126,8 @@ class ExpressionsPrettyPrinter(object):
 
 
 class TypesPrinter(object):
-    def pretty_print(self, _element):
+    @staticmethod
+    def pretty_print(_element):
         # type: (Union[bool,int,str]) -> str
         if isinstance(_element, bool) and _element:
             return 'true'

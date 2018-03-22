@@ -21,6 +21,8 @@
 import os
 from abc import ABCMeta, abstractmethod
 
+from jinja2 import Template
+
 from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
 
 
@@ -28,21 +30,24 @@ class TargetFile(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, _path, _template):
+        # type: (str, Template) -> None
         self.path = _path
         self.template = _template
 
     def generate(self):
+        # type: () -> None
         self.create_target_directory()
-        with open(self.path, 'w+') as file:
-            file.write(self.template.render(self.setup_namespace()))
+        with open(self.path, 'w+') as f:
+            f.write(self.template.render(self.setup_namespace()))
 
     @abstractmethod
     def setup_namespace(self):
+        # type: () -> dict
         pass
 
-    def create_target_directory(self):
+    @staticmethod
+    def create_target_directory():
+        # type: () -> None
         target_dir = FrontendConfiguration.getTargetPath()
         if not os.path.isdir(target_dir):
             os.makedirs(target_dir)
-
-

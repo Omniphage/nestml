@@ -25,6 +25,7 @@ from pynestml.frontend.FrontendConfiguration import FrontendConfiguration
 
 class TargetPaths(object):
     def __init__(self):
+        # type: () -> None
         self.sli_directory = os.path.join(FrontendConfiguration.getTargetPath(), 'sli')
         self.module_header_path = os.path.join(FrontendConfiguration.getTargetPath(),
                                                FrontendConfiguration.getModuleName()) + '.h'
