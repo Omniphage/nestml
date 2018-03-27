@@ -4,8 +4,8 @@
   @result C++ Block
 #}
 {% if not variable.isFunction() %}
-  {{declarations.printVariableType(variable)}} tmp_{{names.name(variable)}} = {{names.getter(variable)}}();
-  updateValue<{{declarations.printVariableType(variable)}}>(__d, "{{names.name(variable)}}", tmp_{{names.name(variable)}});
+  {{declarations.print_variable_type(variable)}} tmp_{{names.name(variable)}} = {{names.getter(variable)}}();
+  updateValue<{{declarations.print_variable_type(variable)}}>(__d, "{{names.name(variable)}}", tmp_{{names.name(variable)}});
 {% else -%}
-  // ignores '{{names.name(variable)}}' {{declarations.printVariableType(variable)}}' since it is an function and setter isn't defined
+  // ignores '{{names.name(variable)}}' {{declarations.print_variable_type(variable)}}' since it is an function and setter isn't defined
 {% endif -%}
