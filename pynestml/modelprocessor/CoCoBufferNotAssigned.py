@@ -17,13 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
+from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
+from pynestml.modelprocessor.VariableSymbol import BlockType
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 from pynestml.utils.Messages import Messages
-from pynestml.modelprocessor.CoCo import CoCo
-from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.VariableSymbol import BlockType
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 
 
 class CoCoBufferNotAssigned(CoCo):
@@ -51,11 +52,13 @@ class CoCoBufferNotAssigned(CoCo):
 
 class NoBufferAssignedVisitor(NESTMLVisitor):
     def visit_assignment(self, _assignment=None):
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getName(), SymbolKind.VARIABLE)
-        if symbol is not None and (symbol.getBlockType() == BlockType.INPUT_BUFFER_SPIKE or
-                                           symbol.getBlockType() == BlockType.INPUT_BUFFER_CURRENT):
-            code, message = Messages.getValueAssignedToBuffer(_assignment.getVariable().getCompleteName())
-            Logger.logMessage(_code=code, _message=message,
-                              _errorPosition=_assignment.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
-        return
+        try:
+            symbol = _assignment.getScope().resolve_variable_symbol(_assignment.getVariable().getName())
+            if (symbol.getBlockType() == BlockType.INPUT_BUFFER_SPIKE or
+                    symbol.getBlockType() == BlockType.INPUT_BUFFER_CURRENT):
+                code, message = Messages.getValueAssignedToBuffer(_assignment.getVariable().getCompleteName())
+                Logger.logMessage(_code=code, _message=message,
+                                  _errorPosition=_assignment.getSourcePosition(),
+                                  _logLevel=LOGGING_LEVEL.ERROR)
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_assignment.getVariable().getName(), _assignment.getVariable())

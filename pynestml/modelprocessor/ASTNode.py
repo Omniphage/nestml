@@ -19,7 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from abc import ABCMeta, abstractmethod
 from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
-from pynestml.modelprocessor.Scope import Scope
+from pynestml.modelprocessor.Scope import Scope, ScopeNotSetError
 
 
 class ASTNode(object):
@@ -105,11 +105,8 @@ class ASTNode(object):
         return
 
     def getScope(self):
-        """
-        Returns the scope of this element.
-        :return: a scope object.
-        :rtype: Scope 
-        """
+        if self.__scope is None:
+            raise ScopeNotSetError
         return self.__scope
 
     def updateScope(self, _scope=None):

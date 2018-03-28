@@ -24,3 +24,11 @@ class LoggingShortcuts(object):
         # type: () -> None
         code, message = Messages.getModuleGenerated(FrontendConfiguration.getTargetPath())
         Logger.logMessage(_code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
+
+    @staticmethod
+    def log_could_not_resolve(_name, _node):
+        code, message = Messages.getCouldNotResolve(_name)
+        Logger.logMessage(_code=code, _message=message,
+                          _errorPosition=_node.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
+
+        pass

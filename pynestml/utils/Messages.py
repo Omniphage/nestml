@@ -211,20 +211,6 @@ class Messages(object):
         return MessageCode.ODE_UPDATED, message
 
     @classmethod
-    def getNoVariableFound(cls, _variableName=None):
-        """
-        Returns a message indicating that a variable has not been found.
-        :param _variableName: the name of the variable
-        :type _variableName: str
-        :return: a message
-        :rtype: (MessageCode,str)
-        """
-        assert (_variableName is not None and isinstance(_variableName, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(_variableName)
-        message = 'No variable \'%s\' found!' % _variableName
-        return MessageCode.NO_VARIABLE_FOUND, message
-
-    @classmethod
     def getBufferTypeNotDefined(cls, _bufferName=None):
         """
         Returns a message indicating that a buffer type has not been defined, thus nS is assumed.

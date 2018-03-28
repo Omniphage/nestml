@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
@@ -69,10 +70,12 @@ class EquationsOnlyForInitValues(NESTMLVisitor):
         :param _equation: a single equation object.
         :type _equation: ASTOdeEquation
         """
-        symbol = _equation.getScope().resolveToSymbol(_equation.getLhs().getNameOfLhs(), SymbolKind.VARIABLE)
-        if symbol is not None and not symbol.isInitValues():
-            code, message = Messages.getEquationVarNotInInitValuesBlock(_equation.getLhs().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message,
-                              _errorPosition=_equation.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
+        try:
+            symbol = _equation.getScope().resolve_variable_symbol(_equation.getLhs().getNameOfLhs())
+            if not symbol.isInitValues():
+                code, message = Messages.getEquationVarNotInInitValuesBlock(_equation.getLhs().getNameOfLhs())
+                Logger.logMessage(_code=code, _message=message,
+                                  _errorPosition=_equation.getSourcePosition(),
+                                  _logLevel=LOGGING_LEVEL.ERROR)
+        except CannotResolveSymbolError:
             return

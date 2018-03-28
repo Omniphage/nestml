@@ -20,6 +20,7 @@
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
 from pynestml.utils.Messages import Messages
@@ -65,14 +66,18 @@ class VectorInDeclarationVisitor(NESTMLVisitor):
             variables = _declaration.getExpression().getVariables()
             for variable in variables:
                 if variable is not None:
-                    symbol = _declaration.getScope().resolveToSymbol(variable.getCompleteName(), SymbolKind.VARIABLE)
-                    if symbol is not None and symbol.hasVectorParameter() and not _declaration.hasSizeParameter():
-                        code, message = Messages.getVectorInNonVector(_vector=symbol.getSymbolName(),
-                                                                      _nonVector=list(var.getCompleteName() for
-                                                                                      var in
-                                                                                      _declaration.getVariables()))
+                    try:
+                        symbol = _declaration.getScope().resolve_variable_symbol(variable.getCompleteName())
+                        if symbol.hasVectorParameter() and not _declaration.hasSizeParameter():
+                            code, message = Messages.getVectorInNonVector(_vector=symbol.getSymbolName(),
+                                                                          _nonVector=list(var.getCompleteName() for
+                                                                                          var in
+                                                                                          _declaration.getVariables()))
 
-                        Logger.logMessage(_errorPosition=_declaration.getSourcePosition(),
-                                          _code=code, _message=message,
-                                          _logLevel=LOGGING_LEVEL.ERROR)
+                            Logger.logMessage(_errorPosition=_declaration.getSourcePosition(),
+                                              _code=code, _message=message,
+                                              _logLevel=LOGGING_LEVEL.ERROR)
+                    except CannotResolveSymbolError:
+                        continue
+
         return

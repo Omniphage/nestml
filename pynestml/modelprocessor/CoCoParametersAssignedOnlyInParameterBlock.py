@@ -17,12 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.Scope import ScopeType, CannotResolveSymbolError
 from pynestml.modelprocessor.VariableSymbol import BlockType
-from pynestml.modelprocessor.Scope import ScopeType
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 from pynestml.utils.Messages import Messages
 
@@ -72,11 +71,13 @@ class ParametersAssignmentVisitor(NESTMLVisitor):
         assert (_assignment is not None and isinstance(_assignment, ASTAssignment)), \
             '(PyNestML.CoCo.ParametersAssignedOutsideParametersBlock) No or wrong type of assignment provided (%s)!' \
             % type(_assignment)
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getName(), SymbolKind.VARIABLE)
-        if symbol is not None and symbol.getBlockType() == BlockType.PARAMETERS and \
-                        _assignment.getScope().getScopeType() != ScopeType.GLOBAL:
-            code, message = Messages.getAssignmentNotAllowed(_assignment.getVariable().getCompleteName())
-            Logger.logMessage(_errorPosition=_assignment.getSourcePosition(),
-                              _code=code, _message=message,
-                              _logLevel=LOGGING_LEVEL.ERROR)
-        return
+        try:
+            symbol = _assignment.getScope().resolve_variable_symbol(_assignment.getVariable().getName())
+            if (symbol.getBlockType() == BlockType.PARAMETERS and
+                    _assignment.getScope().getScopeType() != ScopeType.GLOBAL):
+                code, message = Messages.getAssignmentNotAllowed(_assignment.getVariable().getCompleteName())
+                Logger.logMessage(_errorPosition=_assignment.getSourcePosition(),
+                                  _code=code, _message=message,
+                                  _logLevel=LOGGING_LEVEL.ERROR)
+        except CannotResolveSymbolError:
+            return

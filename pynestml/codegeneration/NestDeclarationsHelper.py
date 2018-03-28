@@ -19,8 +19,10 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from typing import List
 
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.codegeneration.PyNestMl2NESTTypeConverter import NESTML2NESTTypeConverter
 from pynestml.modelprocessor.ASTDeclaration import ASTDeclaration
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.TypeSymbol import TypeSymbol
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol
@@ -42,16 +44,14 @@ class NestDeclarationsHelper(object):
     @staticmethod
     def get_variables(_ast_declaration=None):
         # type: (ASTDeclaration) ->List[VariableSymbol]
-        ret = list()
+        ret = []
         for var in _ast_declaration.getVariables():
-            symbol = _ast_declaration.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
-            if symbol is not None:
+            try:
+                symbol = var.getScope().resolve_variable_symbol(var.getCompleteName())
                 ret.append(symbol)
-            else:
-                code, message = Messages.getCouldNotResolve(var.getCompleteName())
-                Logger.logMessage(_code=code, _message=message,
-                                  _errorPosition=_ast_declaration.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
-            return ret
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(var.getCompleteName(), var)
+        return ret
 
     def print_variable_type(self, _variable_symbol=None):
         # type: (VariableSymbol) -> str

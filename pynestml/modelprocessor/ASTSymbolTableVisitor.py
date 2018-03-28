@@ -19,6 +19,7 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from typing import Generator, List
 
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ASTAssignment import ASTAssignment
 from pynestml.modelprocessor.ASTBlock import ASTBlock
 from pynestml.modelprocessor.ASTBlockWithVariables import ASTBlockWithVariables
@@ -55,10 +56,8 @@ from pynestml.modelprocessor.CoCosManager import CoCosManager
 from pynestml.modelprocessor.Either import Either
 from pynestml.modelprocessor.FunctionSymbol import FunctionSymbol
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
-from pynestml.modelprocessor.Scope import Scope, ScopeType
+from pynestml.modelprocessor.Scope import Scope, ScopeType, CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType, VariableType
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
@@ -97,7 +96,6 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         _neuron.updateScope(scope)
         _neuron.getBody().updateScope(scope)
         # now first, we add all predefined elements to the scope
-
 
         return
 
@@ -348,15 +346,17 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
 
     def visit_ode_shape(self, _ode_shape):
         # type: (ASTOdeShape) -> None
-        if _ode_shape.getVariable().getDifferentialOrder() == 0 and \
-                _ode_shape.getScope().resolveToSymbol(_ode_shape.getVariable().getCompleteName(),
-                                                      SymbolKind.VARIABLE) is None:
-            symbol = VariableSymbol(_referenced_object=_ode_shape, _scope=_ode_shape.getScope(),
-                                    _name=_ode_shape.getVariable().getName(), _blockType=BlockType.EQUATION,
-                                    _declaringExpression=_ode_shape.getExpression(), _isRecordable=True,
-                                    _typeSymbol=PredefinedTypes.getRealType(), _variableType=VariableType.SHAPE)
-            symbol.setComment(_ode_shape.getComment())
-            _ode_shape.getScope().addSymbol(symbol)
+        if _ode_shape.getVariable().getDifferentialOrder() == 0:
+            # TODO: is the resovle step really necessary?
+            try:
+                symbol = _ode_shape.getScope().resolve_variable_symbol(_ode_shape.getVariable().getCompleteName())
+            except CannotResolveSymbolError:
+                symbol = VariableSymbol(_referenced_object=_ode_shape, _scope=_ode_shape.getScope(),
+                                        _name=_ode_shape.getVariable().getName(), _blockType=BlockType.EQUATION,
+                                        _declaringExpression=_ode_shape.getExpression(), _isRecordable=True,
+                                        _typeSymbol=PredefinedTypes.getRealType(), _variableType=VariableType.SHAPE)
+                symbol.setComment(_ode_shape.getComment())
+                _ode_shape.getScope().addSymbol(symbol)
         _ode_shape.getVariable().updateScope(_ode_shape.getScope())
         _ode_shape.getExpression().updateScope(_ode_shape.getScope())
         return
@@ -498,8 +498,8 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         # this is the updated version, where nS buffers are marked as conductance based
         for bufferDeclaration in _input_lines:
             if bufferDeclaration.isSpike():
-                symbol = bufferDeclaration.getScope().resolveToSymbol(bufferDeclaration.getName(), SymbolKind.VARIABLE)
-                if symbol is not None and symbol.getTypeSymbol().equals(PredefinedTypes.getTypeIfExists('nS')):
+                symbol = bufferDeclaration.getScope().resolve_variable_symbol(bufferDeclaration.getName())
+                if symbol.getTypeSymbol().equals(PredefinedTypes.getTypeIfExists('nS')):
                     symbol.setConductanceBased(True)
         return
 
@@ -518,18 +518,15 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         # the definition of a differential equations is defined by stating the derivation, thus derive the actual order
         diff_order = _ode_equation.getLhs().getDifferentialOrder() - 1
         # we check if the corresponding symbol already exists, e.g. V_m' has already been declared
-        existing_symbol = _ode_equation.getScope().resolveToSymbol(_ode_equation.getLhs().getName() + '\'' * diff_order,
-                                                                   SymbolKind.VARIABLE)
-        if existing_symbol is not None:
+        try:
+            existing_symbol = _ode_equation.getScope().resolve_variable_symbol(_ode_equation.getLhs().getCompleteName())
             existing_symbol.setOdeDefinition(_ode_equation.getRhs())
             _ode_equation.getScope().updateVariableSymbol(existing_symbol)
             code, message = Messages.getOdeUpdated(_ode_equation.getLhs().getNameOfLhs())
             Logger.logMessage(_errorPosition=existing_symbol.referenced_object.getSourcePosition(),
                               _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
-        else:
-            code, message = Messages.getNoVariableFound(_ode_equation.getLhs().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message, _errorPosition=_ode_equation.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_ode_equation.getLhs().getCompleteName(), _ode_equation.getLhs())
         return
 
     @staticmethod
@@ -539,17 +536,14 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
             # we only update those which define an ode
             return
         # we check if the corresponding symbol already exists, e.g. V_m' has already been declared
-        existing_symbol = _ode_shape.getScope().resolveToSymbol(_ode_shape.getVariable().getNameOfLhs(),
-                                                                SymbolKind.VARIABLE)
-        if existing_symbol is not None:
+        try:
+            existing_symbol = _ode_shape.getScope().resolve_variable_symbol(_ode_shape.getVariable().getNameOfLhs())
             existing_symbol.setOdeDefinition(_ode_shape.getExpression())
             existing_symbol.setVariableType(VariableType.SHAPE)
             _ode_shape.getScope().updateVariableSymbol(existing_symbol)
             code, message = Messages.getOdeUpdated(_ode_shape.getVariable().getNameOfLhs())
             Logger.logMessage(_errorPosition=existing_symbol.referenced_object.getSourcePosition(),
                               _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
-        else:
-            code, message = Messages.getNoVariableFound(_ode_shape.getVariable().getNameOfLhs())
-            Logger.logMessage(_code=code, _message=message, _errorPosition=_ode_shape.getSourcePosition(),
-                              _logLevel=LOGGING_LEVEL.ERROR)
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_ode_shape.getVariable().getCompleteName())
         return

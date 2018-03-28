@@ -55,52 +55,52 @@ class GSLReferenceConverterTestConvertNameReference(unittest.TestCase):
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_init_buffer(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.B_.' + _mock_gsl_names_converter.buffer_value(), result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_euler_constant(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isBuffer.return_value = False
         _mock_gsl_names_converter.convert_to_cpp_name.return_value = 'e'
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('numerics::e', result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_local_variable(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = True
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isLocal.return_value = True
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isFunction.return_value = False
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual(_mock_gsl_names_converter.convert_to_cpp_name.return_value, result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_function_variable(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = True
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isFunction.return_value = True
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual(_mock_gsl_names_converter.convert_to_cpp_name.return_value, result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_vector_variable(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isFunction.return_value = False
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.get_' + _mock_gsl_names_converter.convert_to_cpp_name.return_value + '()[i]', result)
 
     @patch('pynestml.codegeneration.GSLReferenceConverter.GSLNamesConverter')
     def test_convert_name_reference_with_regular_variable(self, _mock_gsl_names_converter):
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isInitValues.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isBuffer.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isLocal.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.isFunction.return_value = False
-        self.variable.getScope.return_value.resolveToSymbol.return_value.hasVectorParameter.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isInitValues.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isBuffer.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isLocal.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.isFunction.return_value = False
+        self.variable.getScope.return_value.resolve_variable_symbol.return_value.hasVectorParameter.return_value = False
         result = self.class_under_test.convert_name_reference(self.variable)
         self.assertEqual('node.get_' + _mock_gsl_names_converter.convert_to_cpp_name.return_value + '()', result)
 

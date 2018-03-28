@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 
 
@@ -173,9 +174,12 @@ class ASTUtils(object):
         _ast.accept(higher_order_visitor)
         for var in res:
             if '\'' not in var.getCompleteName():
-                symbol = _ast.getScope().resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
-                if symbol.isFunction():
-                    ret.append(symbol)
+                try:
+                    symbol = _ast.getScope().resolve_variable_symbol(var.getCompleteName())
+                    if symbol.isFunction():
+                        ret.append(symbol)
+                except CannotResolveSymbolError:
+                    LoggingShortcuts.log_could_not_resolve(var.getCompleteName(), var)
         return ret
 
     @classmethod
@@ -207,13 +211,15 @@ class ASTUtils(object):
         :rtype: VariableSymbol
         """
         from pynestml.modelprocessor.ASTVariable import ASTVariable
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        variables = (var for var in cls.getAll(_ast, ASTVariable) if
-                     _scope.resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE))
+        variables = (var for var in cls.getAll(_ast, ASTVariable))
         for var in variables:
-            symbol = _scope.resolveToSymbol(var.getCompleteName(), SymbolKind.VARIABLE)
-            if symbol is not None and symbol.hasVectorParameter():
-                return symbol
+            try:
+                symbol = _scope.resolve_variable_symbol(var.getCompleteName())
+                if symbol.hasVectorParameter():
+                    return symbol
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(var.getCompleteName(),var)
+                continue
         return None
 
     @classmethod
@@ -230,7 +236,8 @@ class ASTUtils(object):
         from pynestml.modelprocessor.ASTHigherOrderVisitor import ASTHigherOrderVisitor
         from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
         ret = list()
-        higher_order_visitor= ASTHigherOrderVisitor(lambda x: ret.append(x) if isinstance(x, ASTFunctionCall) and x.getName() == _functionName else True)
+        higher_order_visitor = ASTHigherOrderVisitor(
+            lambda x: ret.append(x) if isinstance(x, ASTFunctionCall) and x.getName() == _functionName else True)
         _ast.accept(higher_order_visitor)
         return ret
 

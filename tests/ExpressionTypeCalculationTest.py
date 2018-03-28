@@ -20,6 +20,7 @@
 import os
 import unittest
 
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.codegeneration.UnitConverter import UnitConverter
 from pynestml.modelprocessor.ASTSourcePosition import ASTSourcePosition
 from pynestml.modelprocessor.ModelParser import ModelParser
@@ -28,7 +29,7 @@ from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.SymbolTable import SymbolTable
 from pynestml.modelprocessor.UnitTypeSymbol import UnitTypeSymbol
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
@@ -49,7 +50,10 @@ class expressionTestVisitor(NESTMLVisitor):
 
         _expr = _assignment.getExpression()
 
-        varSymbol = scope.resolveToSymbol(varName, SymbolKind.VARIABLE)
+        try:
+            varSymbol = scope.resolve_variable_symbol(varName)
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(varName, _assignment.getVariable())
 
         _equals = varSymbol.getTypeSymbol().equals(_expr.type)
 

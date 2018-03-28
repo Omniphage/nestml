@@ -21,6 +21,10 @@ from copy import copy
 
 from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.Either import Either
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
+from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.utils.Logger import Logger, LOGGING_LEVEL
+from pynestml.utils.Messages import Messages
 
 
 class ASTVariable(ASTNode):
@@ -58,6 +62,9 @@ class ASTVariable(ASTNode):
         self.__differentialOrder = _differentialOrder
         return
 
+
+
+
     @classmethod
     def makeASTVariable(cls, _name=None, _differentialOrder=0, _sourcePosition=None):
         """
@@ -72,12 +79,6 @@ class ASTVariable(ASTNode):
         :rtype: ASTVariable
         """
         return cls(_name, _differentialOrder, _sourcePosition)
-
-    def resolveInOwnScope(self):
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        assert self.getScope() is not None
-
-        return self.getScope().resolveToSymbol(self.getCompleteName(), SymbolKind.VARIABLE)
 
     def getName(self):
         """

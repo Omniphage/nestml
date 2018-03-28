@@ -300,11 +300,25 @@ class Scope(object):
             if sim.getSymbolName() == _name and sim.getSymbolKind() == _type:
                 return self
         if self.hasEnclosingScope():
-            return self.getEnclosingScope().resolveToSymbol(_name, _type)
+            return self.getEnclosingScope()._resolveToSymbol(_name, _type)
         else:
             return None
 
-    def resolveToSymbol(self, _name=None, _type=None):
+    def resolve_variable_symbol(self, _name):
+        return self._try_resolve_symbol(_name, SymbolKind.VARIABLE)
+
+
+    def resolve_function_symbol(self, _name):
+        return self._try_resolve_symbol(_name, SymbolKind.FUNCTION)
+
+    def _try_resolve_symbol(self, _name, _kind):
+        symbol = self._resolveToSymbol(_name, _kind)
+        if symbol is not None:
+            return symbol
+        else:
+            raise CannotResolveSymbolError
+
+    def _resolveToSymbol(self, _name=None, _type=None):
         """
         Returns the first symbol corresponding to the handed over parameters, starting from this scope. Starting
         from this, climbs recursively upwards until the element has been located or no enclosing scope is left.
@@ -323,7 +337,7 @@ class Scope(object):
             if sim.getSymbolName() == _name and sim.getSymbolKind() == _type:
                 return copy(sim)
         if self.hasEnclosingScope():
-            return self.getEnclosingScope().resolveToSymbol(_name, _type)
+            return self.getEnclosingScope()._resolveToSymbol(_name, _type)
         else:
             return None
 
@@ -417,6 +431,14 @@ class Scope(object):
             else:
                 ret += elem.printScope()
         return ret
+
+
+class CannotResolveSymbolError(Exception):
+    pass
+
+
+class ScopeNotSetError(Exception):
+    pass
 
 
 class ScopeType(Enum):

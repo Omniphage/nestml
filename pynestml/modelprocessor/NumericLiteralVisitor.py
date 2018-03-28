@@ -21,12 +21,10 @@
 """
 simpleExpression : (INTEGER|FLOAT) (variable)?
 """
-from copy import copy
 
-from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
-from pynestml.modelprocessor.Either import Either
+from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
 
 
 class NumericLiteralVisitor(NESTMLVisitor):
@@ -35,20 +33,13 @@ class NumericLiteralVisitor(NESTMLVisitor):
     """
 
     def visit_simple_expression(self, _expr=None):
-        """
-        TODO comments
-        :param _expr:
-        :type _expr:
-        :return:
-        :rtype:
-        """
+        # type: (ASTSimpleExpression) -> None
         assert _expr.getScope() is not None, "Run symboltable creator."
         # if variable is also set in this expression, the var type overrides the literal
         if _expr.getVariable() is not None:
-            scope = _expr.getScope()
-            varName = _expr.getVariable().getName()
-            variableSymbolResolve = scope.resolveToSymbol(varName, SymbolKind.VARIABLE)
-            _expr.type = variableSymbolResolve.getTypeSymbol()
+            var_name = _expr.getVariable().getName()
+            variable_symbol_resolve = _expr.getScope().resolve_variable_symbol(var_name)
+            _expr.type = variable_symbol_resolve.getTypeSymbol()
             _expr.type.referenced_object = _expr
             return
 

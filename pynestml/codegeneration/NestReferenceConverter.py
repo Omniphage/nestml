@@ -24,6 +24,7 @@ from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
 from pynestml.modelprocessor.ASTVariable import ASTVariable
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.codegeneration.UnitConverter import UnitConverter
@@ -138,12 +139,9 @@ class NESTReferenceConverter(IReferenceConverter):
         if variableName == PredefinedVariables.E_CONSTANT:
             return 'numerics::e'
         else:
-            symbol = _astVariable.getScope().resolveToSymbol(variableName, SymbolKind.VARIABLE)
-            if symbol is None:
-                # this should actually not happen, but an error message is better than an exception
-                code, message = Messages.getCouldNotResolve(variableName)
-                Logger.logMessage(_logLevel=LOGGING_LEVEL.ERROR, _code=code, _message=message,
-                                  _errorPosition=_astVariable.getSourcePosition())
+            try:
+                symbol = _astVariable.getScope().resolve_variable_symbol(variableName)
+            except CannotResolveSymbolError:
                 return ''
             else:
                 if symbol.isLocal():

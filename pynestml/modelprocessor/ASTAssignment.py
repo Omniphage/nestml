@@ -17,9 +17,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ASTNode import ASTNode
 from pynestml.modelprocessor.ASTVariable import ASTVariable
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 
 
 class ASTAssignment(ASTNode):
@@ -293,6 +294,3 @@ class ASTAssignment(ASTNode):
                                                       _sourcePosition=self.getSourcePosition())
         result.updateScope(self.getScope())
         return result
-
-    def resolveLhsVariableSymbol(self):
-        return self.getVariable().resolveInOwnScope()

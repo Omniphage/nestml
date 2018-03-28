@@ -20,12 +20,12 @@
 """
 simpleExpression : functionCall
 """
-from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
-from pynestml.modelprocessor.Either import Either
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ErrorStrings import ErrorStrings
 from pynestml.modelprocessor.ErrorTypeSymbol import ErrorTypeSymbol
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.Symbol import SymbolKind
 from pynestml.modelprocessor.VoidTypeSymbol import VoidTypeSymbol
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
@@ -42,15 +42,12 @@ class FunctionCallVisitor(NESTMLVisitor):
         Visits a single function call as stored in a simple expression and derives the correct type of all its
         parameters. :param _expr: a simple expression :type _expr: ASTSimpleExpression :rtype void
         """
-        assert (_expr is not None and isinstance(_expr, ASTSimpleExpression)), \
-            '(PyNestML.Visitor.FunctionCallVisitor) No or wrong type of simple expression provided (%s)!' % tuple(_expr)
-        assert (_expr.getScope() is not None), \
-            "(PyNestML.Visitor.FunctionCallVisitor) No scope found, run symboltable creator!"
         scope = _expr.getScope()
         function_name = _expr.getFunctionCall().getName()
-        method_symbol = scope.resolveToSymbol(function_name, SymbolKind.FUNCTION)
+        try:
+            method_symbol = scope.resolve_function_symbol(function_name)
         # check if this function exists
-        if method_symbol is None:
+        except CannotResolveSymbolError:
             code, message = Messages.getCouldNotResolve(function_name)
             Logger.logMessage(_code=code, _message=message, _errorPosition=_expr.getSourcePosition(),
                               _logLevel=LOGGING_LEVEL.ERROR)
@@ -67,10 +64,13 @@ class FunctionCallVisitor(NESTMLVisitor):
 
             if buffer_parameter.getVariable() is not None:
                 buffer_name = buffer_parameter.getVariable().getName()
-                buffer_symbol_resolve = scope.resolveToSymbol(buffer_name, SymbolKind.VARIABLE)
-                if buffer_symbol_resolve is not None:
-                    _expr.type = buffer_symbol_resolve.getTypeSymbol()
+                try:
+                    buffer_symbol = scope.resolve_variable_symbol(buffer_name)
+                    _expr.type = buffer_symbol.getTypeSymbol()
                     return
+                except CannotResolveSymbolError:
+                    LoggingShortcuts.log_could_not_resolve(buffer_name, buffer_parameter.getVariable())
+
 
             # getting here means there is an error with the parameters to convolve
             code, message = Messages.get_convolve_needs_buffer_parameter()

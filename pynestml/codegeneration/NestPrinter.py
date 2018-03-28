@@ -17,18 +17,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
-from pynestml.codegeneration.PyNestMl2NESTTypeConverter import NESTML2NESTTypeConverter
-from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
 from pynestml.codegeneration.ExpressionsPrettyPrinter import ExpressionsPrettyPrinter
-from pynestml.modelprocessor.ASTFunction import ASTFunction
-from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
-from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
+from pynestml.codegeneration.NestNamesConverter import NestNamesConverter
+from pynestml.codegeneration.PyNestMl2NESTTypeConverter import NESTML2NESTTypeConverter
+from pynestml.modelprocessor.ASTBody import ASTBody
 from pynestml.modelprocessor.ASTExpression import ASTExpression
 from pynestml.modelprocessor.ASTForStmt import ASTForStmt
+from pynestml.modelprocessor.ASTFunction import ASTFunction
+from pynestml.modelprocessor.ASTFunctionCall import ASTFunctionCall
+from pynestml.modelprocessor.ASTSimpleExpression import ASTSimpleExpression
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol, BlockType
-from pynestml.modelprocessor.ASTBody import ASTBody
+from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 
 
 class NestPrinter(object):
@@ -175,11 +176,10 @@ class NestPrinter(object):
         :rtype: str
         """
         from pynestml.modelprocessor.ASTFunction import ASTFunction
-        from pynestml.modelprocessor.Symbol import SymbolKind
         assert (_function is not None and isinstance(_function, ASTFunction)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of function provided (%s)!' % type(_function)
-        functionSymbol = _function.getScope().resolveToSymbol(_function.getName(), SymbolKind.FUNCTION)
-        if functionSymbol is not None:
+        try:
+            functionSymbol = _function.getScope().resolve_function_symbol(_function.getName())
             declaration = _function.printComment('//') + '\n'
             declaration += NESTML2NESTTypeConverter.convert(functionSymbol.getReturnType()).replace('.', '::')
             declaration += ' '
@@ -190,8 +190,9 @@ class NestPrinter(object):
                     declaration += ', '
             declaration += ')\n'
             return declaration
-        else:
-            raise RuntimeException('Cannot resolve the method ' + _function.getName())
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_function.getName(), _function)
+            return
 
     def printFunctionDefinition(self, _function=None, _namespace=None):
         """
@@ -207,9 +208,8 @@ class NestPrinter(object):
             '(PyNestML.CodeGeneration.Printer) No or wrong type of function provided (%s)!' % type(_function)
         assert (_namespace is not None and isinstance(_namespace, str)), \
             '(PyNestML.CodeGeneration.Printer) No or wrong type of namespace provided (%s)!' % type(_namespace)
-        functionSymbol = _function.getScope().resolveToSymbol(_function.getName(), SymbolKind.FUNCTION)
-        if functionSymbol is not None:
-            # first collect all parameters
+        try:
+            functionSymbol = _function.getScope().resolve_function_symbol(_function.getName())
             params = list()
             for param in _function.getParameters():
                 params.append(param.getName())
@@ -228,8 +228,9 @@ class NestPrinter(object):
                     declaration += ', '
             declaration += ')\n'
             return declaration
-        else:
-            raise RuntimeException('Cannot resolve the method ' + _function.getName())
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_function.getName(), _function)
+            return
 
     def printBufferArrayGetter(self, _buffer=None):
         """

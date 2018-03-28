@@ -24,6 +24,7 @@ expression : left=expression (plusOp='+'  | minusOp='-') right=expression
 from pynestml.utils.Logger import Logger, LOGGING_LEVEL
 from pynestml.utils.Messages import Messages
 
+#TODO: merge with LoggingShortcuts
 
 class LoggingHelper(object):
     @staticmethod

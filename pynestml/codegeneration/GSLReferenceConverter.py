@@ -21,6 +21,7 @@ from typing import Union
 
 from pynestml.codegeneration.GSLNamesConverter import GSLNamesConverter
 from pynestml.codegeneration.IReferenceConverter import IReferenceConverter
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.codegeneration.NestReferenceConverter import NESTReferenceConverter
 from pynestml.codegeneration.UnitConverter import UnitConverter
 from pynestml.modelprocessor.ASTArithmeticOperator import ASTArithmeticOperator
@@ -33,7 +34,7 @@ from pynestml.modelprocessor.ASTVariable import ASTVariable
 from pynestml.modelprocessor.PredefinedFunctions import PredefinedFunctions
 from pynestml.modelprocessor.PredefinedUnits import PredefinedUnits
 from pynestml.modelprocessor.PredefinedVariables import PredefinedVariables
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 
 
 class GSLReferenceConverter(IReferenceConverter):
@@ -54,7 +55,7 @@ class GSLReferenceConverter(IReferenceConverter):
     def convert_name_reference(self, _ast_variable):
         # type: (ASTVariable) -> str
         variable_name = GSLNamesConverter.convert_to_cpp_name(_ast_variable.getName())
-        symbol = _ast_variable.getScope().resolveToSymbol(_ast_variable.getCompleteName(), SymbolKind.VARIABLE)
+        symbol = _ast_variable.getScope().resolve_variable_symbol(_ast_variable.getCompleteName())
 
         if PredefinedUnits.isUnit(_ast_variable.getCompleteName()):
             return str(

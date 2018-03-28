@@ -17,12 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
+from pynestml.modelprocessor.ASTNeuron import ASTNeuron
+from pynestml.modelprocessor.CoCo import CoCo
+from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 from pynestml.utils.Messages import Messages
-from pynestml.modelprocessor.CoCo import CoCo
-from pynestml.modelprocessor.ASTNeuron import ASTNeuron
-from pynestml.modelprocessor.Symbol import SymbolKind
-from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 
 
 class CoCoConvolveCondCorrectlyBuilt(CoCo):
@@ -58,17 +59,22 @@ class ConvolveCheckerVisitor(NESTMLVisitor):
     def visit_function_call(self, _functionCall=None):
         funcName = _functionCall.getName()
         if funcName == 'convolve' or funcName == 'cond_sum' or funcName == 'curr_sum':
-            symbolVar = _functionCall.getScope().resolveToSymbol(str(_functionCall.getArgs()[0]),
-                                                                 SymbolKind.VARIABLE)
-            symbolBuffer = _functionCall.getScope().resolveToSymbol(str(_functionCall.getArgs()[1]),
-                                                                    SymbolKind.VARIABLE)
-            if symbolVar is not None and not symbolVar.isShape() and not symbolVar.isInitValues():
-                code, message = Messages.getFirstArgNotShapeOrEquation(funcName)
-                Logger.logMessage(_code=code, _message=message,
-                                  _errorPosition=_functionCall.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
-            if symbolBuffer is not None and not symbolBuffer.isInputBufferSpike():
-                code, message = Messages.getSecondArgNotABuffer(funcName)
-                Logger.logMessage(_errorPosition=_functionCall.getSourcePosition(),
-                                  _code=code, _message=message,
-                                  _logLevel=LOGGING_LEVEL.ERROR)
+            try:
+                symbolVar = _functionCall.getScope().resolve_variable_symbol(str(_functionCall.getArgs()[0]))
+                if not symbolVar.isShape() and not symbolVar.isInitValues():
+                    code, message = Messages.getFirstArgNotShapeOrEquation(funcName)
+                    Logger.logMessage(_code=code, _message=message, _errorPosition=_functionCall.getSourcePosition(),
+                                      _logLevel=LOGGING_LEVEL.ERROR)
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(str(_functionCall.getArgs()[0]), _functionCall.getArgs()[0])
+            try:
+                symbolBuffer = _functionCall.getScope().resolve_variable_symbol(str(_functionCall.getArgs()[1]))
+                if not symbolBuffer.isInputBufferSpike():
+                    code, message = Messages.getSecondArgNotABuffer(funcName)
+                    Logger.logMessage(_errorPosition=_functionCall.getSourcePosition(),
+                                      _code=code, _message=message,
+                                      _logLevel=LOGGING_LEVEL.ERROR)
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(str(_functionCall.getArgs()[1]), _functionCall.getArgs()[1])
+
             return

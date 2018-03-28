@@ -151,8 +151,7 @@ class ErrorStrings(object):
                         operation = "-"
 
         if (isinstance(_parentNode, ASTAssignment)):
-            lhsVariableSymbol = _parentNode.getScope().resolveToSymbol(_parentNode.getVariable().getCompleteName(),
-                                                                       SymbolKind.VARIABLE)
+            lhsVariableSymbol = _parentNode.getScope().resolve_variable_symbol(_parentNode.getVariable().getCompleteName())
             operation = "="
             targetExpression = _parentNode.getVariable()
             targetUnit = lhsVariableSymbol.getTypeSymbol().astropy_unit

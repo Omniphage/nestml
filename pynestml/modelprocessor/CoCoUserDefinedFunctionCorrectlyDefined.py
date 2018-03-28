@@ -17,12 +17,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ErrorTypeSymbol import ErrorTypeSymbol
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.TypeCaster import TypeCaster
 from pynestml.modelprocessor.TypeSymbol import TypeSymbol
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
@@ -58,17 +58,23 @@ class CoCoUserDefinedFunctionCorrectlyDefined(CoCo):
         cls.__neuronName = _neuron.getName()
         for userDefinedFunction in _neuron.getFunctions():
             cls.__processedFunction = userDefinedFunction
-            symbol = userDefinedFunction.getScope().resolveToSymbol(userDefinedFunction.getName(), SymbolKind.FUNCTION)
-            # first ensure that the block contains at least one statement
-            if symbol is not None and len(userDefinedFunction.getBlock().getStmts()) > 0:
-                # now check that the last statement is a return
-                cls.__checkReturnRecursively(symbol.getReturnType(), userDefinedFunction.getBlock().getStmts(), False)
-            # now if it does not have a statement, but uses a return type, it is an error
-            elif symbol is not None and userDefinedFunction.hasReturnType() and \
-                    not symbol.getReturnType().equals(PredefinedTypes.getVoidType()):
-                code, message = Messages.getNoReturn()
-                Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
-                                  _errorPosition=userDefinedFunction.getSourcePosition(), _logLevel=LOGGING_LEVEL.ERROR)
+            try:
+                symbol = userDefinedFunction.getScope().resolve_function_symbol(userDefinedFunction.getName())
+                # first ensure that the block contains at least one statement
+                if len(userDefinedFunction.getBlock().getStmts()) > 0:
+                    # now check that the last statement is a return
+                    cls.__checkReturnRecursively(symbol.getReturnType(), userDefinedFunction.getBlock().getStmts(),
+                                                 False)
+                # now if it does not have a statement, but uses a return type, it is an error
+                elif (userDefinedFunction.hasReturnType() and
+                      not symbol.getReturnType().equals(PredefinedTypes.getVoidType())):
+                    code, message = Messages.getNoReturn()
+                    Logger.logMessage(_neuron=_neuron, _code=code, _message=message,
+                                      _errorPosition=userDefinedFunction.getSourcePosition(),
+                                      _logLevel=LOGGING_LEVEL.ERROR)
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(userDefinedFunction.getName(), userDefinedFunction)
+
         return
 
     @classmethod

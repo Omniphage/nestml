@@ -40,12 +40,12 @@ class NestAssignmentsHelperTest(unittest.TestCase):
         Logger.initLogger(LOGGING_LEVEL.ERROR)
 
     def test_lhs_variable_with_resovable_symbol(self):
-        scope = self.mock_assignment.getScope.return_value.resolveToSymbol.return_value
+        symbol = self.mock_assignment.getScope.return_value.resolve_variable_symbol.return_value
         result = self.class_under_test.lhs_variable(self.mock_assignment)
-        self.assertEqual(scope, result)
+        self.assertEqual(symbol, result)
 
     def test_lhs_variable_with_unresovable_symbol(self):
-        self.mock_assignment.getScope.return_value.resolveToSymbol.return_value = None
+        self.mock_assignment.getScope.return_value.resolve_variable_symbol.return_value = None
         self.mock_assignment.getVariable.return_value.getCompleteName.return_value = 'somevar'
         self.class_under_test.lhs_variable(self.mock_assignment)
         (a, b, c, d, e, message) = Logger.getLog()[0]
@@ -99,13 +99,13 @@ class NestAssignmentsHelperTest(unittest.TestCase):
 
     def test_variable_has_vector_parameter_without_symbol(self):
         var = Mock(ASTVariable)
-        var.getScope.return_value.resolveToSymbol.return_value = None
+        var.getScope.return_value.resolve_variable_symbol.return_value = None
         result = self.class_under_test.variable_has_vector_parameter(var)
         self.assertEqual(False, result)
 
     def test_variable_has_vector_parameter_with_symbol_no_vector_parameter(self):
         var = Mock(ASTVariable)
-        var.getScope.return_value.resolveToSymbol.return_value.hasVectorParameter.return_value = False
+        var.getScope.return_value.resolve_variable_symbol.return_value.hasVectorParameter.return_value = False
         result = self.class_under_test.variable_has_vector_parameter(var)
         self.assertEqual(False, result)
 
@@ -116,23 +116,23 @@ class NestAssignmentsHelperTest(unittest.TestCase):
 
     def test_print_size_parameter_expression_var_has_symbol_is_vector(self):
         var = Mock(ASTVariable)
-        sym = var.getScope.return_value.resolveToSymbol.return_value
+        sym = var.getScope.return_value.resolve_variable_symbol.return_value
         self.mock_assignment.getExpression.return_value.getVariables.return_value = [var]
         result = self.class_under_test.print_size_parameter(self.mock_assignment)
         self.assertEqual(sym.getVectorParameter(), result)
 
     def test_print_size_parameter_expression_var_has_no_symbol(self):
         expr_var = Mock(ASTVariable)
-        expr_var.getScope.return_value.resolveToSymbol.return_value = None
+        expr_var.getScope.return_value.resolve_variable_symbol.return_value = None
         self.mock_assignment.getExpression.return_value.getVariables.return_value = [expr_var]
         result = self.class_under_test.print_size_parameter(self.mock_assignment)
-        self.mock_assignment.getScope.return_value.resolveToSymbol.assert_called_with(
+        self.mock_assignment.getScope.return_value.resolve_variable_symbol.assert_called_with(
             self.mock_assignment.getVariable().getCompleteName(), SymbolKind.VARIABLE)
 
     def test_print_size_parameter_expression_var_has_symbol_is_no_vector(self):
         expr_var = Mock(ASTVariable)
-        expr_var.getScope.return_value.resolveToSymbol.return_value.hasVectorParameter.return_value = False
+        expr_var.getScope.return_value.resolve_variable_symbol.return_value.hasVectorParameter.return_value = False
         self.mock_assignment.getExpression.return_value.getVariables.return_value = [expr_var]
         result = self.class_under_test.print_size_parameter(self.mock_assignment)
-        self.mock_assignment.getScope.return_value.resolveToSymbol.assert_called_with(
+        self.mock_assignment.getScope.return_value.resolve_variable_symbol.assert_called_with(
             self.mock_assignment.getVariable().getCompleteName(), SymbolKind.VARIABLE)

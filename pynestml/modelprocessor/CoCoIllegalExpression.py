@@ -17,13 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
-
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ASTNeuron import ASTNeuron
 from pynestml.modelprocessor.CoCo import CoCo
 from pynestml.modelprocessor.ErrorTypeSymbol import ErrorTypeSymbol
 from pynestml.modelprocessor.LoggingHelper import LoggingHelper
 from pynestml.modelprocessor.ModelVisitor import NESTMLVisitor
 from pynestml.modelprocessor.PredefinedTypes import PredefinedTypes
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.TypeCaster import TypeCaster
 from pynestml.utils.Logger import LOGGING_LEVEL, Logger
 from pynestml.utils.Messages import Messages
@@ -81,17 +82,19 @@ class CorrectExpressionVisitor(NESTMLVisitor):
         return
 
     def handle_complex_assignment(self, _assignment):
-        rhs_expr = _assignment.getExpression()
-        lhs_variable_symbol = _assignment.resolveLhsVariableSymbol()
-        rhs_type_symbol = rhs_expr.type
-
+        rhs_type_symbol = _assignment.getExpression().type
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):
             LoggingHelper.drop_missing_type_error(_assignment)
             return
-
-        if self.__types_do_not_match(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol):
-            TypeCaster.try_to_recover_or_error(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol,
-                                               _assignment.getExpression())
+        try:
+            lhs_variable_symbol = _assignment.getScope().resolve_variable_symbol(
+                _assignment.getVariable().getCompleteName())
+            if self.__types_do_not_match(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol):
+                TypeCaster.try_to_recover_or_error(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol,
+                                                   _assignment.getExpression())
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_assignment.getVariable().getCompleteName(),
+                                                   _assignment.getVariable())
         return
 
     @staticmethod
@@ -99,19 +102,20 @@ class CorrectExpressionVisitor(NESTMLVisitor):
         return not _lhs_type_symbol.equals(_rhs_type_symbol)
 
     def handle_simple_assignment(self, _assignment):
-        from pynestml.modelprocessor.Symbol import SymbolKind
-        lhs_variable_symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
-                                                                     SymbolKind.VARIABLE)
-
         rhs_type_symbol = _assignment.getExpression().type
         if isinstance(rhs_type_symbol, ErrorTypeSymbol):
             LoggingHelper.drop_missing_type_error(_assignment)
             return
-
-        if lhs_variable_symbol is not None and self.__types_do_not_match(lhs_variable_symbol.getTypeSymbol(),
-                                                                         rhs_type_symbol):
-            TypeCaster.try_to_recover_or_error(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol,
-                                               _assignment.getExpression())
+        try:
+            lhs_variable_symbol = _assignment.getScope().resolve_variable_symbol(
+                _assignment.getVariable().getCompleteName())
+            if self.__types_do_not_match(lhs_variable_symbol.getTypeSymbol(),
+                                         rhs_type_symbol):
+                TypeCaster.try_to_recover_or_error(lhs_variable_symbol.getTypeSymbol(), rhs_type_symbol,
+                                                   _assignment.getExpression())
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_assignment.getVariable().getCompleteName(),
+                                                   _assignment.getVariable())
         return
 
     def visit_if_clause(self, _if_clause=None):
@@ -188,7 +192,7 @@ class CorrectExpressionVisitor(NESTMLVisitor):
                               _logLevel=LOGGING_LEVEL.ERROR)
         elif not (from_type.equals(PredefinedTypes.getIntegerType())
                   or from_type.equals(
-                PredefinedTypes.getRealType())):
+                    PredefinedTypes.getRealType())):
             code, message = Messages.getTypeDifferentFromExpected(PredefinedTypes.getIntegerType(),
                                                                   from_type)
             Logger.logMessage(_code=code, _message=message, _errorPosition=_for_stmt.getFrom().getSourcePosition(),

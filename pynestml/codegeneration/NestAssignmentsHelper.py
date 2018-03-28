@@ -19,12 +19,11 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from typing import Union
 
+from pynestml.codegeneration.LoggingShortcuts import LoggingShortcuts
 from pynestml.modelprocessor.ASTAssignment import ASTAssignment
 from pynestml.modelprocessor.ASTVariable import ASTVariable
-from pynestml.modelprocessor.Symbol import SymbolKind
+from pynestml.modelprocessor.Scope import CannotResolveSymbolError
 from pynestml.modelprocessor.VariableSymbol import VariableSymbol
-from pynestml.utils.Logger import LOGGING_LEVEL, Logger
-from pynestml.utils.Messages import Messages
 
 
 class NestAssignmentsHelper(object):
@@ -35,14 +34,11 @@ class NestAssignmentsHelper(object):
     @staticmethod
     def lhs_variable(_assignment):
         # type: (ASTAssignment) -> Union[None,VariableSymbol]
-        symbol = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
-                                                        SymbolKind.VARIABLE)
-        if symbol is not None:
-            return symbol
-        else:
-            code, message = Messages.getCouldNotResolve(_assignment.getVariable().getCompleteName())
-            Logger.logMessage(_code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR)
-            return
+        try:
+            return _assignment.getScope().resolve_variable_symbol(_assignment.getVariable().getCompleteName())
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_assignment.getVariable().getCompleteName(),
+                                                   _assignment.getVariable())
 
     @staticmethod
     def print_assignments_operation(_assignment):
@@ -64,29 +60,34 @@ class NestAssignmentsHelper(object):
         for var in _assignment.getExpression().getVariables():
             if NestAssignmentsHelper.variable_has_vector_parameter(var):
                 return True
-        code, message = Messages.getCouldNotResolve(_assignment.getVariable().getCompleteName())
-        Logger.logMessage(_code=code, _message=message, _logLevel=LOGGING_LEVEL.ERROR)
         return False
 
     @staticmethod
     def variable_has_vector_parameter(_variable):
         # type: (ASTVariable) -> bool
-        symbol = _variable.getScope().resolveToSymbol(_variable.getCompleteName(), SymbolKind.VARIABLE)
-        if symbol is not None and symbol.hasVectorParameter():
-            return True
-        return False
+        try:
+            symbol = _variable.getScope().resolve_variable_symbol(_variable.getCompleteName())
+            if symbol.hasVectorParameter():
+                return True
+        except CannotResolveSymbolError:
+            LoggingShortcuts.log_could_not_resolve(_variable.getCompleteName(), _variable)
+            return False
 
     @staticmethod
     def print_size_parameter(_assignment):
         # type: (ASTAssignment) -> VariableSymbol
         vector_variable = None
         for variable in _assignment.getExpression().getVariables():
-            symbol = variable.getScope().resolveToSymbol(variable.getCompleteName(), SymbolKind.VARIABLE)
-            if symbol is not None and symbol.hasVectorParameter():
-                vector_variable = symbol
-                break
+            try:
+                symbol = variable.getScope().resolve_variable_symbol(variable.getCompleteName())
+                if symbol.hasVectorParameter():
+                    vector_variable = symbol
+                    break
+            except CannotResolveSymbolError:
+                LoggingShortcuts.log_could_not_resolve(variable.getCompleteName(), variable)
+
         if vector_variable is None:
-            vector_variable = _assignment.getScope().resolveToSymbol(_assignment.getVariable().getCompleteName(),
-                                                                     SymbolKind.VARIABLE)
+            vector_variable = _assignment.getScope().resolve_variable_symbol(
+                _assignment.getVariable().getCompleteName())
         # this function is called only after the corresponding assignment has been tested for been a vector
         return vector_variable.getVectorParameter()
