@@ -518,15 +518,16 @@ class ASTSymbolTableVisitor(NESTMLVisitor):
         # the definition of a differential equations is defined by stating the derivation, thus derive the actual order
         diff_order = _ode_equation.getLhs().getDifferentialOrder() - 1
         # we check if the corresponding symbol already exists, e.g. V_m' has already been declared
+        name_to_resolve = _ode_equation.getLhs().getName() + '\'' * diff_order
         try:
-            existing_symbol = _ode_equation.getScope().resolve_variable_symbol(_ode_equation.getLhs().getCompleteName())
+            existing_symbol = _ode_equation.getScope().resolve_variable_symbol(name_to_resolve)
             existing_symbol.setOdeDefinition(_ode_equation.getRhs())
             _ode_equation.getScope().updateVariableSymbol(existing_symbol)
             code, message = Messages.getOdeUpdated(_ode_equation.getLhs().getNameOfLhs())
             Logger.logMessage(_errorPosition=existing_symbol.referenced_object.getSourcePosition(),
                               _code=code, _message=message, _logLevel=LOGGING_LEVEL.INFO)
         except CannotResolveSymbolError:
-            LoggingShortcuts.log_could_not_resolve(_ode_equation.getLhs().getCompleteName(), _ode_equation.getLhs())
+            LoggingShortcuts.log_could_not_resolve(name_to_resolve, _ode_equation.getLhs())
         return
 
     @staticmethod
